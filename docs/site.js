@@ -117,12 +117,12 @@
 
   // голос, документы и доп. шаги сценария
   const V = {
-    ru: { attach: 'Прикрепить документ', mic: 'Голосовой ввод', listening: 'Слушаю…', denied: 'Разрешите доступ к микрофону в браузере и нажмите 🎤 ещё раз.', noSpeech: 'Не расслышал. Нажмите 🎤 и повторите.', docPrompt: 'Проанализируй документ, найди суммы, даты, сроки и штрафы:',
-      steps: ['После расчёта нажмите «Какая окупаемость?» — Aqyl оценит прибавку урожая и чистый эффект.', 'Нажмите «Анализ документа» → «Проверить образец договора» (или 📎 и свой .txt / .pdf): Aqyl найдёт суммы, даты, сроки и штрафы, затем ответит на вопросы по документу.', 'Нажмите 🎤 и задайте вопрос голосом (Chrome или Edge; русский, казахский или английский).'] },
-    kk: { attach: 'Құжат тіркеу', mic: 'Дауыспен енгізу', listening: 'Тыңдап тұрмын…', denied: 'Браузерде микрофонға рұқсат беріп, 🎤 қайта басыңыз.', noSpeech: 'Естімедім. 🎤 басып қайталаңыз.', docPrompt: 'Құжатты талдап, сомаларды, күндерді, мерзімдер мен айыппұлдарды тап:',
-      steps: ['Есептен кейін «Қайтарымы қандай?» басыңыз — Aqyl өнім өсімі мен таза нәтижені бағалайды.', '«Құжатты талдау» → «Шарт үлгісін тексеру» басыңыз (немесе 📎 және өз .txt / .pdf файлыңыз): Aqyl сомаларды, күндерді, мерзімдер мен айыппұлдарды тауып, құжат бойынша сұрақтарға жауап береді.', '🎤 басып, сұрақты дауыспен қойыңыз (Chrome немесе Edge; қазақша, орысша немесе ағылшынша).'] },
-    en: { attach: 'Attach a document', mic: 'Voice input', listening: 'Listening…', denied: 'Allow microphone access in your browser and tap 🎤 again.', noSpeech: "I didn't catch that. Tap 🎤 and try again.", docPrompt: 'Analyze this document and find amounts, dates, deadlines and penalties:',
-      steps: ['After the calculation tap “What is the payback?” — Aqyl estimates extra yield and net effect.', 'Tap “Analyze a document” → “Check the sample contract” (or 📎 with your own .txt / .pdf): Aqyl finds amounts, dates, deadlines and penalties, then answers questions about it.', 'Tap 🎤 and ask by voice (Chrome or Edge; Russian, Kazakh or English).'] },
+    ru: { speaker: 'Озвучивать ответы на голосовые вопросы', attach: 'Прикрепить документ', mic: 'Голосовой ввод', listening: 'Слушаю…', denied: 'Разрешите доступ к микрофону в браузере и нажмите 🎤 ещё раз.', noSpeech: 'Не расслышал. Нажмите 🎤 и повторите.', docPrompt: 'Проанализируй документ, найди суммы, даты, сроки и штрафы:',
+      steps: ['После расчёта нажмите «Какая окупаемость?» — Aqyl оценит прибавку урожая и чистый эффект.', 'Нажмите «Анализ документа» → «Проверить образец договора» (или 📎 и свой .txt / .pdf): Aqyl найдёт суммы, даты, сроки и штрафы, затем ответит на вопросы по документу.', 'Нажмите 🎤 и задайте вопрос голосом (Chrome или Edge; русский, казахский или английский).', 'Проверьте «ум» бота: скажите или напишите одной фразой <code>сто пятьдесят гектаров пшеницы в Костанайской области</code>, затем <code>а для ячменя?</code>, <code>а если пятьсот гектаров</code>, <code>двадцать тонн карбамида</code> или <code>доставка в Атырау и оплата</code>. Опечатки и числа словами не помеха.'] },
+    kk: { speaker: 'Дауыстық сұрақтарға жауапты дыбыстау', attach: 'Құжат тіркеу', mic: 'Дауыспен енгізу', listening: 'Тыңдап тұрмын…', denied: 'Браузерде микрофонға рұқсат беріп, 🎤 қайта басыңыз.', noSpeech: 'Естімедім. 🎤 басып қайталаңыз.', docPrompt: 'Құжатты талдап, сомаларды, күндерді, мерзімдер мен айыппұлдарды тап:',
+      steps: ['Есептен кейін «Қайтарымы қандай?» басыңыз — Aqyl өнім өсімі мен таза нәтижені бағалайды.', '«Құжатты талдау» → «Шарт үлгісін тексеру» басыңыз (немесе 📎 және өз .txt / .pdf файлыңыз): Aqyl сомаларды, күндерді, мерзімдер мен айыппұлдарды тауып, құжат бойынша сұрақтарға жауап береді.', '🎤 басып, сұрақты дауыспен қойыңыз (Chrome немесе Edge; қазақша, орысша немесе ағылшынша).', 'Боттың «ақылын» тексеріңіз: бір сөйлеммен айтыңыз немесе жазыңыз <code>екі жүз елу гектар бидай Қостанай облысы</code>, содан кейін <code>арпаға ше?</code>, <code>он тонна карбамид</code> немесе <code>Атыраудағы жеткізу және төлем</code>. Қате жазу мен сөзбен айтылған сандар кедергі емес.'] },
+    en: { speaker: 'Read answers aloud to voice questions', attach: 'Attach a document', mic: 'Voice input', listening: 'Listening…', denied: 'Allow microphone access in your browser and tap 🎤 again.', noSpeech: "I didn't catch that. Tap 🎤 and try again.", docPrompt: 'Analyze this document and find amounts, dates, deadlines and penalties:',
+      steps: ['After the calculation tap “What is the payback?” — Aqyl estimates extra yield and net effect.', 'Tap “Analyze a document” → “Check the sample contract” (or 📎 with your own .txt / .pdf): Aqyl finds amounts, dates, deadlines and penalties, then answers questions about it.', 'Tap 🎤 and ask by voice (Chrome or Edge; Russian, Kazakh or English).', 'Test the bot’s brains: say or type in one sentence <code>two hundred fifty hectares of wheat in Akmola</code>, then <code>what about barley</code>, <code>fifty bags of urea</code> or <code>delivery to Atyrau and payment</code>. Typos and numbers in words are fine.'] },
   };
 
   const store = {
@@ -157,7 +157,7 @@
     $('steps').innerHTML = L.steps.map(([h, p]) => `<div class="card step"><h3>${h}</h3><p>${p}</p></div>`).join('');
     $('regions').innerHTML = REGIONS.map((r) => `<span class="region">${r[lang]}<b>${r.days} ${L.days}</b></span>`).join('');
     $('demo-steps').innerHTML = L.demo_steps.concat(V[lang].steps).map((s) => `<li>${s}</li>`).join('');
-    $('attach').title = V[lang].attach; $('mic').title = V[lang].mic;
+    $('attach').title = V[lang].attach; $('mic').title = V[lang].mic; $('speaker').title = V[lang].speaker;
 
     const faq = $('faq-list');
     faq.innerHTML = '';
@@ -220,7 +220,7 @@
     try {
       let r;
       if (live) {
-        history.push({ role: 'user', content: text });
+        history.push({ role: 'user', content: opts.voice ? '🎤 ' + text : text });
         const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history }) });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'error');
@@ -228,10 +228,11 @@
         r = { text: data.reply, saved: data.leadSaved };
       } else {
         await new Promise((ok) => setTimeout(ok, 450 + Math.random() * 450));
-        r = opts.demoReply ? opts.demoReply() : demo.reply(text);
+        r = opts.demoReply ? opts.demoReply() : demo.reply(text, { voice: opts.voice });
       }
       wait.remove();
       addMsg('bot', r.text);
+      if (opts.voice) speak(r.text);
       if (r.lead) leadCard(r.lead);
       if (r.saved) addMsg('bot', t().saved);
       chips(r.chips);
@@ -283,32 +284,55 @@
 
   // ---------- голосовой ввод ----------
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  let rec = null;
+  const SR_LANG = { ru: 'ru-RU', kk: 'kk-KZ', en: 'en-US' };
+  let rec = null, speakOn = store.get('aqyl_tts', true);
+
+  // озвучка ответа: только если есть голос нужного языка (казахских голосов в браузерах мало)
+  function speak(txt) {
+    if (!speakOn || !('speechSynthesis' in window)) return;
+    const v = speechSynthesis.getVoices().find((x) => x.lang.toLowerCase().startsWith(lang));
+    if (!v) return;
+    const clean = txt.split('\n\n📄')[0].replace(/[📄🎤✅]/gu, '').replace(/[•]/g, '').replace(/\n+/g, '. ').slice(0, 420);
+    const u = new SpeechSynthesisUtterance(clean);
+    u.voice = v; u.lang = v.lang;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }
+  function renderSpeaker() { const b = $('speaker'); b.textContent = speakOn ? '🔊' : '🔇'; b.title = V[lang].speaker; }
+  $('speaker').onclick = () => { speakOn = !speakOn; store.set('aqyl_tts', speakOn); if (!speakOn && window.speechSynthesis) speechSynthesis.cancel(); renderSpeaker(); };
+  renderSpeaker();
+
   if (SR) {
     $('mic').hidden = false;
-    $('mic').onclick = () => {
-      if (rec) { rec.stop(); return; }
+    const startRec = (code, retried) => {
       rec = new SR();
-      rec.lang = { ru: 'ru-RU', kk: 'kk-KZ', en: 'en-US' }[lang];
+      rec.lang = code;
       rec.interimResults = true;
-      let finalText = '';
-      rec.onstart = () => { $('mic').classList.add('rec'); input.placeholder = V[lang].listening; };
+      rec.maxAlternatives = 4;
+      let alts = [], retry = false;
+      rec.onstart = () => { $('mic').classList.add('rec'); input.placeholder = V[lang].listening; if (window.speechSynthesis) speechSynthesis.cancel(); };
       rec.onresult = (e) => {
-        let s = ''; for (const r of e.results) s += r[0].transcript;
-        input.value = s;
-        if (e.results[e.results.length - 1].isFinal) finalText = s;
+        const last = e.results[e.results.length - 1];
+        input.value = [...e.results].map((r) => r[0].transcript).join('');
+        if (last.isFinal) alts = [...last].map((a) => a.transcript);
       };
       rec.onerror = (e) => {
-        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') addMsg('bot', V[lang].denied);
+        if (e.error === 'language-not-supported' && !retried && code !== 'ru-RU') retry = true;
+        else if (e.error === 'not-allowed' || e.error === 'service-not-allowed') addMsg('bot', V[lang].denied);
         else if (e.error === 'no-speech') addMsg('bot', V[lang].noSpeech);
       };
       rec.onend = () => {
         $('mic').classList.remove('rec'); input.placeholder = t().placeholder; rec = null;
-        const v = (finalText || input.value).trim(); input.value = '';
-        if (v) send(v);
+        if (retry) { startRec('ru-RU', true); return; }
+        const typed = input.value.trim(); input.value = '';
+        // из вариантов распознавания берём тот, который лучше всего «понятен» боту
+        const cands = alts.length ? alts : typed ? [typed] : [];
+        if (!cands.length) return;
+        const best = cands.reduce((b, c) => (demo.score(c) > demo.score(b) ? c : b), cands[0]);
+        send(best, { voice: true });
       };
       try { rec.start(); } catch { rec = null; }
     };
+    $('mic').onclick = () => { if (rec) rec.stop(); else startRec(SR_LANG[lang], false); };
   }
   function ask(q) { openChat(true); send(q); }
 

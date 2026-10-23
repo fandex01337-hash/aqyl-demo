@@ -1,4 +1,4 @@
-﻿// Данные демо-версии (вымышленные): продукция, культуры, регионы. Используются и ботом, и сайтом.
+// Данные демо-версии (вымышленные): продукция, культуры, регионы. Используются и ботом, и сайтом.
 (function () {
   const PRODUCTS = {
     urea: { price: 9500, tag: '46% N', norm: '100–150',
@@ -45,14 +45,14 @@
   const REGIONS = [
     { id: 'astana', days: '1–2', rx: /астан|astana|нур-султан/i, ru: 'г. Астана', kk: 'Астана қ.', en: 'Astana' },
     { id: 'akmola', days: '2–3', rx: /акмол|ақмола|akmola/i, ru: 'Акмолинская область', kk: 'Ақмола облысы', en: 'Akmola region' },
-    { id: 'kostanay', days: '3–4', rx: /костанай|қостанай|kostanay|kustanay/i, ru: 'Костанайская область', kk: 'Қостанай облысы', en: 'Kostanay region' },
+    { id: 'kostanay', days: '3–4', rx: /костана|қостана|kostana|kustanay/i, ru: 'Костанайская область', kk: 'Қостанай облысы', en: 'Kostanay region' },
     { id: 'nko', days: '3–4', rx: /северо|солтүстік|north.?kaz|петропавл/i, ru: 'Северо-Казахстанская область', kk: 'Солтүстік Қазақстан облысы', en: 'North Kazakhstan region' },
     { id: 'pavlodar', days: '3–4', rx: /павлодар/i, ru: 'Павлодарская область', kk: 'Павлодар облысы', en: 'Pavlodar region' },
     { id: 'karaganda', days: '3–4', rx: /караганд|қарағанды|karaganda/i, ru: 'Карагандинская область', kk: 'Қарағанды облысы', en: 'Karaganda region' },
     { id: 'ulytau', days: '4–5', rx: /улытау|ұлытау|ulytau/i, ru: 'Улытауская область', kk: 'Ұлытау облысы', en: 'Ulytau region' },
     { id: 'abai', days: '4–5', rx: /абай|abai/i, ru: 'Область Абай', kk: 'Абай облысы', en: 'Abai region' },
     { id: 'vko', days: '5–6', rx: /восточно|шығыс қазақ|east.?kaz|өскемен|усть-каме/i, ru: 'Восточно-Казахстанская область', kk: 'Шығыс Қазақстан облысы', en: 'East Kazakhstan region' },
-    { id: 'aktobe', days: '4–5', rx: /актюб|ақтөбе|актобе|aktobe|aktyubinsk/i, ru: 'Актюбинская область', kk: 'Ақтөбе облысы', en: 'Aktobe region' },
+    { id: 'aktobe', days: '4–5', rx: /актюб|актоб|ақтөб|aktobe|aktyubinsk/i, ru: 'Актюбинская область', kk: 'Ақтөбе облысы', en: 'Aktobe region' },
     { id: 'zko', days: '6–7', rx: /западно|батыс қазақ|west.?kaz|уральск/i, ru: 'Западно-Казахстанская область', kk: 'Батыс Қазақстан облысы', en: 'West Kazakhstan region' },
     { id: 'atyrau', days: '6–7', rx: /атырау|atyrau|гурьев/i, ru: 'Атырауская область', kk: 'Атырау облысы', en: 'Atyrau region' },
     { id: 'mangystau', days: '6–7', rx: /мангист|маңғыстау|mangystau|актау/i, ru: 'Мангистауская область', kk: 'Маңғыстау облысы', en: 'Mangystau region' },

@@ -99,7 +99,7 @@
       recoHead: (c, a, r) => `For ${c.toLowerCase()} on ${a} ha (${r}) I recommend:\n`,
       item: (i, n, st, norm, t, sum) => `${i}) ${n} — ${st}, ${norm} kg/ha: ${t} t ≈ ${fmt(sum)} ₸`,
       recoTotal: (s) => `\nTotal ≈ ${fmt(s)} ₸ incl. VAT, excluding delivery.`,
-      recoDisc: (tons, d, s) => ` Volume of ${tons} t qualifies for a ${d}% bulk discount — ≈ ${fmt(s)} ₸.`,
+      recoDisc: (tons, d, s) => ` Volume of ${tons} t qualifies for the ${d}% bulk discount — ≈ ${fmt(s)} ₸.`,
       recoMin: ' Minimum order is 1 tonne.',
       recoDeliv: (r, d) => `\nDelivery to "${r}" takes about ${d} business days; a manager will calculate the exact cost.`,
       recoAsk: '\n\n📄 Source: catalog.md, delivery_faq.md\n\nWould you like to place a request?',
@@ -273,7 +273,172 @@
     return prev;
   }
   const findCrop = (t) => Object.keys(CROP_RX).find((k) => CROP_RX[k].test(t));
-  const findRegion = (t) => REGIONS.find((r) => r.rx.test(t));
+  const findRegion = (t) => (t ? REGIONS.find((r) => r.rx.test(t)) : undefined);
+  const findProd = (t) => (PROD_RX.find(([, rx]) => rx.test(t)) || [])[0];
+
+  // ---- нормализация речи: числа словами, слова-паразиты, опечатки ----
+  const NUMW = {
+    ru: { ноль: 0, один: 1, одна: 1, одну: 1, два: 2, две: 2, три: 3, четыре: 4, пять: 5, шесть: 6, семь: 7, восемь: 8, девять: 9, десять: 10, одиннадцать: 11, двенадцать: 12, тринадцать: 13, четырнадцать: 14, пятнадцать: 15, шестнадцать: 16, семнадцать: 17, восемнадцать: 18, девятнадцать: 19, двадцать: 20, тридцать: 30, сорок: 40, пятьдесят: 50, шестьдесят: 60, семьдесят: 70, восемьдесят: 80, девяносто: 90, сто: 100, двести: 200, триста: 300, четыреста: 400, пятьсот: 500, шестьсот: 600, семьсот: 700, восемьсот: 800, девятьсот: 900, полторы: 1.5, сотня: 100, полсотни: 50, тысяча: 'K', тысячу: 'K', тысячи: 'K', тысяч: 'K' },
+    kk: { нөл: 0, бір: 1, екі: 2, үш: 3, төрт: 4, бес: 5, алты: 6, жеті: 7, сегіз: 8, тоғыз: 9, он: 10, жиырма: 20, отыз: 30, қырық: 40, елу: 50, алпыс: 60, жетпіс: 70, сексен: 80, тоқсан: 90, жүз: 'H', мың: 'K' },
+    en: { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90, hundred: 'H', thousand: 'K' },
+  };
+  const FILLERS = new Set(['э', 'ээ', 'эээ', 'эм', 'мм', 'ммм', 'ну', 'короче', 'значит', 'вот', 'типа', 'ыы', 'аа', 'ааа', 'uh', 'um', 'umm', 'erm', 'эй']);
+  const UNIT_AFTER = /^(га|гектар\S*|ha|hectares?|тонн\S*|т|tons?|tonnes?|кг|килограмм\S*|мешк\S*|мешок|bags?|kg|қап\S*)$/;
+
+  const VOCAB = (() => {
+    const w = new Set();
+    const add = (s) => String(s).toLowerCase().split(/[\s\-.,:%()]+/).forEach((x) => { if (x.length >= 5 && !/\d/.test(x)) w.add(x); });
+    Object.values(CROPS).forEach((c) => Object.values(c.name).forEach(add));
+    Object.values(PRODUCTS).forEach((p) => Object.values(p.name).forEach(add));
+    REGIONS.forEach((r) => { add(r.ru); add(r.kk); add(r.en); });
+    ('удобрение удобрения удобрений доставка доставки оплата оплаты цена цены скидка скидки сертификат сертификаты менеджер менеджера заявка заявку заказ заказать гектар гектаров ' +
+     'договор документ возврат штраф окупаемость хранение хранить фасовка контакты регион регионы культура площадь подобрать ' +
+     'тыңайтқыш жеткізу төлем жеңілдік өтінім тапсырыс баға қанша құжат ' +
+     'fertilizer delivery payment price prices discount certificate manager request order hectare hectares document').split(' ').forEach(add);
+    return [...w];
+  })();
+  const VSET = new Set(VOCAB);
+  function lev(a, b) {
+    const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= n; j++) d[0][j] = j;
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[m][n];
+  }
+  function fixWord(tok) {
+    if (tok.length < 5 || VSET.has(tok) || /\d/.test(tok)) return tok;
+    const max = tok.length >= 8 ? 2 : 1;
+    let best = tok, bd = 99;
+    for (const v of VOCAB) {
+      if (v[0] !== tok[0] || Math.abs(v.length - tok.length) > max) continue;
+      const d = lev(tok, v);
+      if (d < bd) { bd = d; best = v; }
+    }
+    if (bd <= max) return best;
+    // падежные окончания + опечатка («костонайской» → «костанайская»): сравниваем основы
+    best = tok; bd = 99;
+    for (const v of VOCAB) {
+      if (v.length < 8 || v[0] !== tok[0]) continue;
+      const n = Math.max(6, v.length - 3);
+      if (tok.length < n) continue;
+      const d = lev(tok.slice(0, n), v.slice(0, n));
+      if (d < bd) { bd = d; best = v; }
+    }
+    return bd <= 1 ? best : tok;
+  }
+
+  // нормализованный текст нужен только для распознавания; исходный остаётся для показа и заявок
+  function normalize(raw, lang) {
+    const dict = lang === 'kk' ? { ...NUMW.ru, ...NUMW.kk } : lang === 'en' ? NUMW.en : NUMW.ru;
+    const s = raw.toLowerCase()
+      .replace(/(?<!\d)[,;:!?()«»"]+|[,;:!?()«»"]+(?!\d)/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+    const toks = s.split(' ').map((t) => t.replace(/\.+$/, '')).filter((t) => t && !FILLERS.has(t));
+    const out = [];
+    let run = null;
+    const flush = (next) => {
+      if (!run) return;
+      const val = run.total + run.cur;
+      if (val >= 10 || UNIT_AFTER.test(next || '')) out.push(String(val)); else out.push(...run.words);
+      run = null;
+    };
+    for (const t of toks) {
+      if (t === 'and' && run) continue;
+      const n = dict[t];
+      if (n !== undefined) {
+        run = run || { total: 0, cur: 0, words: [] };
+        run.words.push(t);
+        if (n === 'K') { run.total += (run.cur || 1) * 1000; run.cur = 0; }
+        else if (n === 'H') run.cur = run.cur === 0 ? 100 : run.cur < 10 ? run.cur * 100 : run.cur + 100;
+        else run.cur += n;
+      } else { flush(t); out.push(fixWord(t)); }
+    }
+    flush('');
+    return out.join(' ');
+  }
+
+  const UNIT_AREA = /(\d+(?:[.,]\d+)?)\s*(?:га(?![а-яёa-z])|гектар|ha(?![a-z])|hectare)/i;
+  const UNIT_QTY = /(\d+(?:[.,]\d+)?)\s*(тонн\S*|т(?![а-яёa-z])|кг|килограмм\S*|мешк\S*|мешок|қап\S*|tons?(?![a-z])|tonnes?|kg|bags?)/i;
+  function parseArea(nt, relaxed) {
+    const t = nt.replace(/(\d)\s(\d{3})(?!\d)/g, '$1$2');
+    let m = t.match(UNIT_AREA);
+    if (!m && relaxed) m = t.match(/(\d+(?:[.,]\d+)?)/);
+    const v = m && parseFloat(m[1].replace(',', '.'));
+    return v > 0 && v <= 1e6 ? v : null;
+  }
+  function parseQty(nt) {
+    const m = nt.replace(/(\d)\s(\d{3})(?!\d)/g, '$1$2').match(UNIT_QTY);
+    if (!m) return null;
+    const n = parseFloat(m[1].replace(',', '.')), u = m[2].toLowerCase();
+    const kg = /^(кг|kg|килограмм)/.test(u) ? n : /^(меш|bag|қап)/.test(u) ? n * 50 : n * 1000;
+    return kg > 0 && kg <= 1e7 ? kg : null;
+  }
+
+  const FRUSTRATED = /ужас|безобраз|надоел|достал|бесит|сколько можно|почему так долго|не работает|отвратит|бесполезн|terrible|awful|angry|annoy|useless|worst|ashulan|ашулан|жиіркен/i;
+  const URGENT = /срочно|как можно быстрее|прямо сейчас|сегодня же|asap|urgent|right now|шұғыл|тезірек/i;
+  const NAME_RX = [/меня зовут\s+([а-яёәіңғүұқөһ]{2,20})/i, /(?:моё|мое) имя\s+([а-яёәіңғүұқөһ]{2,20})/i, /my name is\s+([a-z]{2,20})/i, /менің атым\s+([а-яёәіңғүұқөһ]{2,20})/i];
+  const VAGUE = /желт|слаб|плох|мало урожа|низк|не растёт|не растет|болеют|вянут|ақсарған|нашар|аз өнім|yellow|poor|low yield|wilt|stunted/i;
+
+  // новые строки: «умные» ответы
+  Object.assign(S.ru, {
+    yes: /^(да|верно|подтвержда|ок|ага|угу|конечно|давайте|хорошо|оформ)/i,
+    no: /^(нет|не надо|не нужно|отмен|потом|пока не)/i,
+    heard: (s) => `🎤 Понял так: ${s}.\n\n`, recalc: 'Пересчитал с новыми параметрами.\n',
+    empathy: 'Понимаю, это неприятно. Давайте разберёмся.',
+    frustrated: `Приношу извинения за неудобства. Давайте подключим менеджера: ${CONTACT} (пн–пт 9:00–18:00), он разберётся с вашим вопросом лично. Могу также оформить заявку, и менеджер перезвонит сам.`,
+    urgent: `\n\nЕсли вопрос срочный, позвоните менеджеру: ${CONTACT}.`,
+    nameHello: (n) => `Приятно познакомиться, ${n}! Чем могу помочь?`,
+    deliveryRegion: (r, d) => `Доставка в «${r}» — около ${d} раб. дней.\n\n`,
+    declined: 'Хорошо. Если понадобится, я рядом.',
+    quoteNeedProduct: 'Какой продукт посчитать для этого объёма?',
+    quote: (n, t, bags, price, ppt, disc, saving, total, small) =>
+      `Расчёт для «${n}», ${t} т (${bags} мешков по 50 кг):\n• По прайсу: ${fmt(price)} ₸ (${fmt(ppt)} ₸/т)\n` +
+      (disc ? `• Оптовая скидка ${disc}%: −${fmt(saving)} ₸\n` : '') + `Итого ≈ ${fmt(total)} ₸ с НДС, без доставки.` +
+      (small ? ' Минимальный заказ — 1 тонна (20 мешков), менеджер уточнит объём.' : '') +
+      '\nСтоимость доставки рассчитает менеджер по адресу.\n\n📄 Источник: catalog.md\n\nОформить заявку?',
+    quoteChips: ['Да, оформить заявку', 'Цены в каталоге', 'Позвать менеджера'],
+    vague: 'Понимаю. Диагноз по состоянию посевов ставит агроном (нужен осмотр и анализ почвы), я не буду гадать. Зато могу подобрать программу питания и передать вопрос специалисту. Для какой культуры?',
+    unknownSmart: `Не уверен, что правильно понял вопрос, или такой информации нет в моих материалах. Выберите тему ниже или переформулируйте. Могу передать вопрос менеджеру: ${CONTACT}.`,
+  });
+  Object.assign(S.en, {
+    yes: /^(yes|yep|yeah|sure|ok|okay|correct|please|go ahead|да|иә)/i,
+    no: /^(no|nope|not now|cancel|нет|жоқ)/i,
+    heard: (s) => `🎤 I understood: ${s}.\n\n`, recalc: 'Recalculated with the new parameters.\n',
+    empathy: "I understand, that's frustrating. Let's sort it out.",
+    frustrated: `I'm sorry for the trouble. Let's bring in a manager: ${CONTACT} (Mon–Fri 9:00–18:00) — they will handle this personally. I can also take a request so the manager calls you.`,
+    urgent: `\n\nIf it's urgent, please call a manager: ${CONTACT}.`,
+    nameHello: (n) => `Nice to meet you, ${n}! How can I help?`,
+    deliveryRegion: (r, d) => `Delivery to "${r}" takes about ${d} business days.\n\n`,
+    declined: "Okay. I'm here if you need me.",
+    quoteNeedProduct: 'Which product should I calculate for this volume?',
+    quote: (n, t, bags, price, ppt, disc, saving, total, small) =>
+      `Calculation for "${n}", ${t} t (${bags} bags of 50 kg):\n• List price: ${fmt(price)} ₸ (${fmt(ppt)} ₸/t)\n` +
+      (disc ? `• Bulk discount ${disc}%: −${fmt(saving)} ₸\n` : '') + `Total ≈ ${fmt(total)} ₸ incl. VAT, excluding delivery.` +
+      (small ? ' Minimum order is 1 tonne (20 bags); a manager will confirm the volume.' : '') +
+      '\nA manager will calculate delivery by address.\n\n📄 Source: catalog.md\n\nWould you like to place a request?',
+    quoteChips: ['Yes, place a request', 'Catalog prices', 'Call a manager'],
+    vague: "I understand. A diagnosis of crop condition is for an agronomist (it needs an inspection and soil analysis), so I won't guess. I can build a nutrition program and pass the question to a specialist. Which crop is it?",
+    unknownSmart: `I'm not sure I understood the question, or this information isn't in my materials. Pick a topic below or rephrase. I can pass it to a manager: ${CONTACT}.`,
+  });
+  Object.assign(S.kk, {
+    yes: /^(иә|иа|дұрыс|жарайды|әрине|да|yes)/i,
+    no: /^(жоқ|болмайды|бас тарт|болдыр|нет)/i,
+    heard: (s) => `🎤 Былай түсіндім: ${s}.\n\n`, recalc: 'Жаңа параметрлермен қайта есептедім.\n',
+    empathy: 'Түсінемін, бұл ыңғайсыз. Бірге шешейік.',
+    frustrated: `Ыңғайсыздық үшін кешірім сұраймын. Менеджерді қосайық: ${CONTACT} (дс–жм 9:00–18:00), ол сұрағыңызды жеке шешеді. Өтінім де қалдыра аласыз, менеджер өзі хабарласады.`,
+    urgent: `\n\nСұрақ шұғыл болса, менеджерге қоңырау шалыңыз: ${CONTACT}.`,
+    nameHello: (n) => `Танысқаныма қуаныштымын, ${n}! Қалай көмектесе аламын?`,
+    deliveryRegion: (r, d) => `«${r}» аймағына жеткізу — шамамен ${d} жұмыс күні.\n\n`,
+    declined: 'Жарайды. Қажет болса, мен осындамын.',
+    quoteNeedProduct: 'Осы көлемге қай өнімді есептеймін?',
+    quote: (n, t, bags, price, ppt, disc, saving, total, small) =>
+      `«${n}» үшін есеп, ${t} т (50 кг-дық ${bags} қап):\n• Прайс бойынша: ${fmt(price)} ₸ (${fmt(ppt)} ₸/т)\n` +
+      (disc ? `• Көтерме жеңілдік ${disc}%: −${fmt(saving)} ₸\n` : '') + `Барлығы ≈ ${fmt(total)} ₸ ҚҚС-пен, жеткізусіз.` +
+      (small ? ' Ең аз тапсырыс — 1 тонна (20 қап), көлемін менеджер нақтылайды.' : '') +
+      '\nЖеткізу құнын менеджер мекенжайға қарай есептейді.\n\n📄 Дереккөз: catalog.md\n\nӨтінім ресімдейік пе?',
+    quoteChips: ['Иә, өтінім ресімдеу', 'Каталог бағасы', 'Менеджерді шақыру'],
+    vague: 'Түсінемін. Егіс жағдайына диагнозды агроном қояды (қарап, топырақ талдауы керек), мен болжап айтпаймын. Бірақ қоректендіру бағдарламасын таңдап, сұрақты маманға бере аламын. Қай дақыл?',
+    unknownSmart: `Сұрақты дұрыс түсінгеніме сенімді емеспін, немесе мұндай ақпарат менің материалдарымда жоқ. Төмендегі тақырыпты таңдаңыз немесе басқаша жазыңыз. Менеджерге бере аламын: ${CONTACT}.`,
+  });
 
   // ---- анализ документа: достаём суммы, даты, сроки и санкции прямо из текста ----
   const SAMPLE = `ДОГОВОР ПОСТАВКИ № 15/10-2026
@@ -303,22 +468,42 @@
     return { amounts, dates, terms, pens };
   }
 
+  const FAQ_KEYS = ['regions', 'timing', 'storage', 'packaging', 'contacts', 'delivery', 'payment', 'docs', 'discount'];
+
   window.createDemo = function (startLang) {
     let lang = startLang || 'ru';
     let flow = null; // crop | area | region | name | contact | request | time | confirm
     let ctx = {};
+    const mem = {}; // память диалога: имя клиента и последний расчёт
     const out = (text, chips) => ({ text, chips: chips || [] });
     const cropChips = () => Object.values(CROPS).map((c) => `${c.icon} ${c.name[lang]}`);
     const areaChips = () => AREAS.map((a) => `${a} ${lang === 'en' ? 'ha' : 'га'}`);
     const regionChips = () => REGIONS.map((r) => r[lang]);
+    const prodChips = () => Object.values(PRODUCTS).map((p) => p.name[lang]);
     const lead = () => ({ имя: ctx.name, контакт: ctx.contact, запрос: ctx.request || S[lang].defaultReq, время: ctx.time });
 
-    function askCrop(L) { flow = 'crop'; return out(L.askCrop, cropChips()); }
-    function askArea(L) { flow = 'area'; return out(L.askArea(CROPS[ctx.crop].name[lang]), areaChips()); }
+    // берём из фразы всё, что узнали: культуру, площадь, регион
+    function absorb(nt, raw, relaxedArea, regionFallback) {
+      let got = 0;
+      const c = findCrop(nt), a = parseArea(nt, relaxedArea), r = findRegion(nt);
+      if (c) { ctx.crop = c; got++; }
+      if (a) { ctx.area = a; got++; }
+      if (r) { ctx.region = r[lang]; ctx.regionObj = r; got++; }
+      else if (regionFallback && !c && !a && raw.length > 1) { ctx.region = raw.slice(0, 60); ctx.regionObj = null; got++; }
+      return got;
+    }
+    const summary = () => [ctx.crop && CROPS[ctx.crop].name[lang], ctx.area && `${ctx.area} ${lang === 'en' ? 'ha' : 'га'}`, ctx.region].filter(Boolean).join(', ');
 
-    function recommend(L, regionText) {
-      const reg = findRegion(regionText);
-      const rName = reg ? reg[lang] : regionText.slice(0, 60);
+    function advance(L, pre = '') {
+      if (!ctx.crop) { flow = 'crop'; return out(pre + L.askCrop, cropChips()); }
+      if (!ctx.area) { flow = 'area'; return out(pre + L.askArea(CROPS[ctx.crop].name[lang]), areaChips()); }
+      if (!ctx.region) { flow = 'region'; return out(pre + L.askRegion(ctx.area), regionChips()); }
+      return recommend(L, pre);
+    }
+
+    function recommend(L, pre = '') {
+      const reg = ctx.regionObj || findRegion(ctx.region);
+      const rName = reg ? reg[lang] : String(ctx.region).slice(0, 60);
       const days = reg ? reg.days : '3–7';
       const crop = CROPS[ctx.crop], a = ctx.area;
       let sum = 0, tons = 0;
@@ -330,14 +515,24 @@
       tons = +tons.toFixed(1);
       const disc = tons >= 50 ? 8 : tons >= 20 ? 5 : 0;
       ctx.cost = sum * (1 - disc / 100);
-      let text = L.recoHead(crop.name[lang], a, rName) + lines.join('\n') + L.recoTotal(sum);
+      let text = pre + L.recoHead(crop.name[lang], a, rName) + lines.join('\n') + L.recoTotal(sum);
       if (disc) text += L.recoDisc(fmtT(tons, lang), disc, sum * (1 - disc / 100));
       if (tons < 1) text += L.recoMin;
       text += L.recoDeliv(rName, days) + L.recoAsk;
       ctx.request = `${crop.name[lang]}, ${a} ${lang === 'en' ? 'ha' : 'га'}, ${rName}: ` +
         crop.plan.map(([pk, norm]) => `${PRODUCTS[pk].name[lang]} ${fmtT((norm * a) / 1000, lang)} т`).join(', ');
+      mem.last = { crop: ctx.crop, area: a, region: ctx.region, regionObj: reg || null };
+      ctx.offer = 'lead';
       flow = null;
       return out(text, L.recoChips);
+    }
+
+    function quote(pk, kg, L) {
+      const p = PRODUCTS[pk], tons = kg / 1000, bags = Math.ceil(kg / 50), price = (kg * p.price) / 50;
+      const disc = tons >= 50 ? 8 : tons >= 20 ? 5 : 0;
+      ctx.request = `${p.name[lang]} ${fmtT(tons, lang)} т`;
+      ctx.offer = 'lead';
+      return out(L.quote(p.name[lang], fmtT(tons, lang), bags, price, p.price * 20, disc, (price * disc) / 100, price * (1 - disc / 100), tons < 1), L.quoteChips);
     }
 
     function docReply(name, content) {
@@ -358,10 +553,18 @@
       return out(L.docBy(ctx.doc.name) + '\n' + (pick[1].length ? pick[1].map((x) => '• ' + x).join('\n') : L.docNone) + '\n\n' + L.docDisclaimer, L.docChips);
     }
 
+    function startLead(L, nt) {
+      if (!ctx.request && (findCrop(nt) || findProd(nt))) ctx.request = nt.slice(0, 160);
+      ctx.offer = null;
+      if (mem.name) { ctx.name = mem.name; flow = 'contact'; return out(L.leadContact(mem.name)); }
+      flow = 'name';
+      return out(L.leadName);
+    }
+
     function stepLead(text, L) {
       switch (flow) {
         case 'name':
-          ctx.name = text.slice(0, 60); flow = 'contact';
+          ctx.name = text.slice(0, 60); mem.name = mem.name || ctx.name; flow = 'contact';
           return out(L.leadContact(ctx.name));
         case 'contact':
           if (!/\d{5,}|@/.test(text.replace(/[\s()-]/g, ''))) return out(L.badContact);
@@ -387,77 +590,156 @@
       }
     }
 
+    function route(raw, nt, L, opts) {
+      const inLeadFlow = flow && !['crop', 'area', 'region'].includes(flow);
+      if (inLeadFlow) return stepLead(raw, L);
+
+      // шаги подбора: можно ответить сразу на несколько вопросов («пшеница, сто гектаров, Костанай»)
+      if (flow === 'crop' || flow === 'area' || flow === 'region') {
+        const got = absorb(nt, raw, flow === 'area', flow === 'region');
+        if (!got) return out(flow === 'crop' ? L.badCrop : flow === 'area' ? L.badArea : L.askRegion(ctx.area), flow === 'crop' ? cropChips() : flow === 'area' ? areaChips() : regionChips());
+        return advance(L, opts.voice ? L.heard(summary()) : '');
+      }
+
+      // имя клиента
+      for (const rx of NAME_RX) {
+        const m = raw.match(rx);
+        if (m) {
+          mem.name = m[1][0].toUpperCase() + m[1].slice(1).toLowerCase();
+          if (raw.length < 45) return out(L.nameHello(mem.name), L.chips);
+        }
+      }
+
+      // «да» в ответ на предложение оформить заявку
+      if (ctx.offer === 'lead') {
+        if (L.yes.test(nt)) return startLead(L, nt);
+        if (L.no.test(nt) && nt.length < 25) { ctx.offer = null; return out(L.declined, L.chips); }
+      }
+
+      if (RX.returns.test(nt)) return out(L.returns, L.leadChips);
+      if (RX.manager.test(nt)) return out(L.manager, L.leadChips);
+      if (RX.faq.test(nt)) return out(L.faqIntro, L.faqChips);
+      if (RX.about.test(nt)) return out(L.about, L.chips);
+
+      // расчёт по объёму: «20 тонн карбамида», «сто мешков селитры»
+      const kg = parseQty(nt);
+      if (kg) {
+        const pk = findProd(nt);
+        if (pk) return quote(pk, kg, L);
+        if (/стоит|цен[аыу]|сколько|price|cost|how much|баға|қанша/i.test(nt)) return out(L.quoteNeedProduct, prodChips());
+      }
+
+      // вопросы по документам компании: можно сразу несколько в одной фразе
+      const reg = findRegion(nt);
+      const answers = {
+        regions: () => L.regionsHead + REGIONS.map((r) => `• ${r[lang]} — ${r.days}`).join('\n') + '\n' + L.regionsFoot,
+        timing: () => L.timing, storage: () => L.storage, packaging: () => L.packaging, contacts: () => L.contacts,
+        delivery: () => (reg ? L.deliveryRegion(reg[lang], reg.days) : '') + L.delivery,
+        payment: () => L.payment, docs: () => L.docs, discount: () => L.discount,
+      };
+      let hits = FAQ_KEYS.filter((k) => RX[k].test(nt));
+      if (hits.includes('regions')) hits = hits.filter((k) => k !== 'delivery');
+      // «цены на карбамид и доставка в Караганде»: цену тоже отдаём, если она названа явно
+      const pk0 = findProd(nt);
+      if (hits.length && (pk0 || /цен[аыу]|прайс|prices?\b|баға/i.test(nt))) {
+        hits.unshift('price');
+        answers.price = () => {
+          if (pk0) { const p = PRODUCTS[pk0]; return L.priceOne(p.name[lang], p.price, p.use[lang], p.norm); }
+          return L.priceHead + Object.values(PRODUCTS).map((p) => `• ${p.name[lang]} — ${fmt(p.price)} ₸`).join('\n') + '\n' + L.priceFoot;
+        };
+      }
+      if (hits.length) {
+        const chips = hits.length === 1 && ['contacts', 'docs'].includes(hits[0]) ? L.leadChips : L.faqChips;
+        return out(hits.slice(0, 3).map((k) => answers[k]()).join('\n\n— — —\n\n'), chips);
+      }
+
+      if (RX.lead.test(nt)) return startLead(L, nt);
+
+      if (RX.roi.test(nt)) {
+        if (!(ctx.crop && ctx.area && ctx.cost)) { flow = 'crop'; return out(L.roiNeed, cropChips()); }
+        const c = CROPS[ctx.crop], extraT = c.uplift * ctx.area, rev = extraT * c.cropPrice, profit = rev - ctx.cost;
+        return out(L.roi(c.name[lang], ctx.area, ctx.cost, fmtT(c.uplift, lang), fmtT(extraT, lang), c.cropPrice, rev, profit, Math.round((profit / ctx.cost) * 100)), L.roiChips);
+      }
+
+      // «другая культура» — площадь и регион берём из прошлого расчёта
+      if (raw === L.other) {
+        ctx = mem.last ? { area: mem.last.area, region: mem.last.region, regionObj: mem.last.regionObj } : {};
+        flow = 'crop';
+        return out(L.askCrop, cropChips());
+      }
+
+      // подбор: культура / площадь / регион из одной фразы, уточнения вроде «а для ячменя?»
+      const crop = findCrop(nt), prod = findProd(nt), area = parseArea(nt, false);
+      const slotIntent = (crop && !prod) || area || (reg && (mem.last || RX.reco.test(nt)));
+      if (slotIntent) {
+        const follow = mem.last && !RX.reco.test(nt);
+        ctx = follow ? { ...mem.last } : {};
+        absorb(nt, raw, false, false);
+        const pre = (opts.voice ? L.heard(summary()) : '') + (follow && ctx.crop && ctx.area && ctx.region ? L.recalc : '');
+        return advance(L, pre);
+      }
+      if (RX.reco.test(nt)) { ctx = {}; return advance(L); }
+
+      if (prod) {
+        const p = PRODUCTS[prod];
+        return out(L.priceOne(p.name[lang], p.price, p.use[lang], p.norm), L.priceChips);
+      }
+      if (RX.price.test(nt)) {
+        const list = Object.values(PRODUCTS).map((p) => `• ${p.name[lang]} — ${fmt(p.price)} ₸`).join('\n');
+        return out(L.priceHead + list + '\n' + L.priceFoot, L.priceChips);
+      }
+      if (VAGUE.test(nt)) { ctx = {}; flow = 'crop'; return out(L.vague, cropChips()); }
+      if (RX.thanks.test(nt)) return out(L.thanks, L.chips);
+      if (RX.greet.test(nt)) return out(mem.name ? L.nameHello(mem.name) : L.hello, L.chips);
+      if (RX.off.test(nt)) return out(L.offtopic, L.chips);
+      const r = out(L.unknownSmart, L.chips);
+      r.unknown = true;
+      return r;
+    }
+
     return {
       get lang() { return lang; },
-      setLang(l) { if (S[l]) { lang = l; flow = null; ctx = {}; } },
+      setLang(l) { if (S[l]) { lang = l; flow = null; ctx = {}; delete mem.last; } },
       greeting() { return out(S[lang].hello, S[lang].chips); },
       docReply,
       docText: (k) => S[lang][k],
-      reply(raw) {
-        const text = raw.trim();
-        if (!flow) lang = detectLang(text, lang);
+      // оценка «насколько фраза понятна» — чтобы выбрать лучший вариант распознавания речи
+      score(rawText) {
+        const keep = lang;
+        lang = detectLang(rawText, lang);
+        const nt = normalize(rawText, lang);
+        lang = keep;
+        let s = 0;
+        if (findCrop(nt)) s += 2;
+        if (findProd(nt)) s += 2;
+        if (findRegion(nt)) s += 2;
+        if (parseArea(nt, false)) s += 2;
+        if (parseQty(nt)) s += 2;
+        ['delivery', 'payment', 'discount', 'docs', 'storage', 'packaging', 'timing', 'contacts', 'regions', 'lead', 'roi', 'price', 'returns', 'manager', 'about'].forEach((k) => { if (RX[k].test(nt)) s += 1; });
+        return s;
+      },
+      reply(rawInput, opts = {}) {
+        const raw = rawInput.trim();
+        if (!flow) lang = detectLang(raw, lang);
         const L = S[lang];
+        const inLeadFlow = flow && !['crop', 'area', 'region'].includes(flow);
+        const nt = inLeadFlow ? raw : normalize(raw, lang);
 
-        if (!flow && text === L.sampleChip) return docReply('sample-contract.txt', SAMPLE);
-        if (RX.cancel.test(text) && flow) { flow = null; ctx = {}; return out(L.cancel, L.chips); }
-        if (RX.jail.test(text)) return out(L.jail, L.chips);
-        if (!flow && ctx.doc && RX.docref.test(text) && /срок|дат|штраф|пен[яиюе]|сумм|стоим|мерзім|айыппұл|сома|deadline|term|date|penalt|fine|amount|sum/i.test(text)) return docAnswer(text, L);
-        if (!flow && RX.docupload.test(text)) return out(L.docHelp, [L.sampleChip]);
+        if (!flow && raw === L.sampleChip) return docReply('sample-contract.txt', SAMPLE);
+        if (RX.cancel.test(nt) && flow) { flow = null; ctx = {}; return out(L.cancel, L.chips); }
+        if (RX.jail.test(nt)) return out(L.jail, L.chips);
+        if (!flow && ctx.doc && RX.docref.test(nt) && /срок|дат|штраф|пен[яиюе]|сумм|стоим|мерзім|айыппұл|сома|deadline|term|date|penalt|fine|amount|sum/i.test(nt)) return docAnswer(nt, L);
+        if (!flow && RX.docupload.test(nt)) return out(L.docHelp, [L.sampleChip]);
 
-        if (flow === 'crop') {
-          const c = findCrop(text);
-          if (!c) return out(L.badCrop, cropChips());
-          ctx.crop = c; return askArea(L);
+        const frustrated = !inLeadFlow && (FRUSTRATED.test(raw) || /[A-ZА-ЯЁ]{5,}.*[A-ZА-ЯЁ]{5,}/.test(raw) || (raw.match(/!/g) || []).length >= 3);
+        const urgent = !inLeadFlow && URGENT.test(nt);
+        const r = route(raw, nt, L, opts);
+        if (frustrated) {
+          if (r.unknown) { r.text = L.frustrated; r.chips = L.leadChips; }
+          else r.text = L.empathy + '\n\n' + r.text;
         }
-        if (flow === 'area') {
-          const m = text.replace(/(\d)[\s ](\d{3})/g, '$1$2').match(/(\d+(?:[.,]\d+)?)/);
-          const v = m && parseFloat(m[1].replace(',', '.'));
-          if (!(v > 0) || v > 1000000) return out(L.badArea, areaChips());
-          ctx.area = v; flow = 'region';
-          return out(L.askRegion(v), regionChips());
-        }
-        if (flow === 'region') return recommend(L, text);
-        if (flow) return stepLead(text, L);
-
-        if (RX.returns.test(text)) return out(L.returns, L.leadChips);
-        if (RX.manager.test(text)) return out(L.manager, L.leadChips);
-        if (RX.faq.test(text)) return out(L.faqIntro, L.faqChips);
-        if (RX.about.test(text)) return out(L.about, L.chips);
-        if (RX.regions.test(text)) {
-          return out(L.regionsHead + REGIONS.map((r) => `• ${r[lang]} — ${r.days}`).join('\n') + '\n' + L.regionsFoot, L.faqChips);
-        }
-        if (RX.timing.test(text)) return out(L.timing, L.faqChips);
-        if (RX.storage.test(text)) return out(L.storage, L.faqChips);
-        if (RX.packaging.test(text)) return out(L.packaging, L.faqChips);
-        if (RX.contacts.test(text)) return out(L.contacts, L.leadChips);
-        if (RX.delivery.test(text)) return out(L.delivery, L.faqChips);
-        if (RX.payment.test(text)) return out(L.payment, L.faqChips);
-        if (RX.docs.test(text)) return out(L.docs, L.leadChips);
-        if (RX.discount.test(text)) return out(L.discount, L.faqChips);
-        if (RX.lead.test(text)) { flow = 'name'; return out(L.leadName); }
-
-        if (RX.roi.test(text)) {
-          if (!(ctx.crop && ctx.area && ctx.cost)) { flow = 'crop'; return out(L.roiNeed, cropChips()); }
-          const c = CROPS[ctx.crop], extraT = c.uplift * ctx.area, rev = extraT * c.cropPrice, profit = rev - ctx.cost;
-          return out(L.roi(c.name[lang], ctx.area, ctx.cost, fmtT(c.uplift, lang), fmtT(extraT, lang), c.cropPrice, rev, profit, Math.round((profit / ctx.cost) * 100)), L.roiChips);
-        }
-        const crop = findCrop(text);
-        if (crop && !PROD_RX.some(([, rx]) => rx.test(text))) { ctx = { crop }; return askArea(L); }
-        if (RX.reco.test(text) || text === L.other) return askCrop(L);
-
-        const prod = PROD_RX.find(([, rx]) => rx.test(text));
-        if (prod) {
-          const p = PRODUCTS[prod[0]];
-          return out(L.priceOne(p.name[lang], p.price, p.use[lang], p.norm), L.priceChips);
-        }
-        if (RX.price.test(text)) {
-          const list = Object.values(PRODUCTS).map((p) => `• ${p.name[lang]} — ${fmt(p.price)} ₸`).join('\n');
-          return out(L.priceHead + list + '\n' + L.priceFoot, L.priceChips);
-        }
-        if (RX.thanks.test(text)) return out(L.thanks, L.chips);
-        if (RX.greet.test(text)) return out(L.hello, L.chips);
-        if (RX.off.test(text)) return out(L.offtopic, L.chips);
-        return out(L.unknown, L.chips);
+        if (urgent && !r.lead) r.text += L.urgent;
+        return r;
       },
     };
   };

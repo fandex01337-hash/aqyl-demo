@@ -17,7 +17,7 @@
   const S = {
     ru: {
       hello: `Сәлеметсіз бе! Здравствуйте! Я Aqyl — ИИ-консультант компании ${COMPANY}. Помогу подобрать удобрение под культуру, посчитаю стоимость, отвечу на вопросы по документам и помогу оставить заявку. Чем могу помочь?`,
-      chips: ['Подобрать удобрение', 'Цены в каталоге', 'Доставка и оплата', 'Частые вопросы', 'Оставить заявку', 'Позвать менеджера'],
+      chips: ['Подобрать удобрение', 'Цены в каталоге', 'Доставка и оплата', 'Анализ документа', 'Частые вопросы', 'Оставить заявку', 'Позвать менеджера'],
       faqIntro: 'Вот что у меня спрашивают чаще всего. Выберите вопрос или напишите свой:',
       faqChips: ['В какие регионы доставка?', 'Когда вносить удобрения?', 'Как хранить удобрения?', 'Какая фасовка?', 'Скидки на опт', 'Сертификаты', 'Контакты и график', 'Кто ты и что умеешь?'],
       askCrop: 'Для какой культуры подбираем удобрение?',
@@ -32,7 +32,7 @@
       recoMin: ' Минимальный заказ — 1 тонна.',
       recoDeliv: (r, d) => `\nДоставка в регион «${r}» — около ${d} раб. дней, точную стоимость рассчитает менеджер.`,
       recoAsk: '\n\n📄 Источник: catalog.md, delivery_faq.md\n\nОформить заявку?',
-      recoChips: ['Да, оформить заявку', 'Подобрать для другой культуры', 'Условия оплаты', 'Позвать менеджера'],
+      recoChips: ['Какая окупаемость?', 'Да, оформить заявку', 'Подобрать для другой культуры', 'Позвать менеджера'],
       priceHead: 'Цены на 01.10.2026, с НДС, без доставки (мешок 50 кг):\n',
       priceFoot: '\n📄 Источник: catalog.md, прайс-лист\nПодобрать вариант под вашу культуру?',
       priceOne: (n, p, use, norm) => `${n}, мешок 50 кг — ${fmt(p)} ₸. ${use} Норма: ${norm} кг/га.\n\n📄 Источник: catalog.md`,
@@ -70,10 +70,25 @@
       no: /(нет|отмен|не надо|cancel|жоқ|болдыр)/i,
       defaultReq: 'Консультация по удобрениям',
       other: 'Подобрать для другой культуры',
+      roiNeed: 'Сначала подберём программу питания для вашей культуры — тогда посчитаю окупаемость.',
+      roi: (c, a, cost, upl, extraT, price, rev, profit, pct) =>
+        `Ориентировочная окупаемость для «${c}» на ${a} га:\n• Затраты на удобрения: ≈ ${fmt(cost)} ₸\n• Ожидаемая прибавка урожая: ≈ ${extraT} т (${upl} т/га)\n• Доп. выручка при цене ${fmt(price)} ₸/т: ≈ ${fmt(rev)} ₸\n• Чистый эффект: ≈ ${fmt(profit)} ₸ (${pct}% к затратам)\n\nЭто оценка на демо-допущениях, а не гарантия: результат зависит от погоды, почвы и агротехники. Точный расчёт сделает агроном.\n\n📄 Источник: catalog.md, раздел «Допущения для окупаемости»`,
+      roiChips: ['Да, оформить заявку', 'Подобрать для другой культуры', 'Позвать менеджера'],
+      docHelp: 'Могу разобрать договор, счёт или коммерческое предложение: найду суммы, даты, сроки и штрафы. Нажмите 📎 в строке сообщения и выберите файл (.txt или .pdf) — он обрабатывается только в вашем браузере. Или попробуйте образец.',
+      sampleChip: 'Проверить образец договора',
+      docRead: (n) => `Прочитал документ «${n}». Вот главное:`,
+      docAmounts: 'Суммы', docDates: 'Даты', docTerms: 'Сроки', docPen: 'Обязательства и санкции', docNone: 'не найдено',
+      docNothing: 'Не нашёл в тексте сумм, дат и сроков. Возможно, это не договор или текст не удалось извлечь.',
+      docDisclaimer: 'Это автоматический обзор, не юридическая консультация. Важные условия проверьте с менеджером или юристом.',
+      docChips: ['Какие сроки в документе?', 'Какие штрафы в документе?', 'Какие суммы в документе?', 'Передать менеджеру'],
+      docBy: (n) => `По документу «${n}»:`,
+      docUnsupported: 'Пока читаю текстовые файлы и PDF (.txt, .md, .csv, .pdf). Для фото и сканов нужен живой режим с распознаванием.',
+      docTooBig: 'Файл слишком большой (максимум 2 МБ).',
+      docPdfFail: 'Не удалось прочитать PDF. Попробуйте текстовый файл.',
     },
     en: {
       hello: `Hello! I'm Aqyl, the AI consultant of ${COMPANY}. I can pick a fertilizer for your crop, calculate the cost, answer questions from our documents and place a request. How can I help?`,
-      chips: ['Pick a fertilizer', 'Catalog prices', 'Delivery and payment', 'FAQ', 'Leave a request', 'Call a manager'],
+      chips: ['Pick a fertilizer', 'Catalog prices', 'Delivery and payment', 'Analyze a document', 'FAQ', 'Leave a request', 'Call a manager'],
       faqIntro: 'Here is what people ask most often. Pick a question or type your own:',
       faqChips: ['Which regions do you deliver to?', 'When to apply fertilizer?', 'How to store fertilizer?', 'What packaging is available?', 'Bulk discounts', 'Certificates', 'Contacts and hours', 'Who are you?'],
       askCrop: 'Which crop do you need a fertilizer for?',
@@ -88,7 +103,7 @@
       recoMin: ' Minimum order is 1 tonne.',
       recoDeliv: (r, d) => `\nDelivery to "${r}" takes about ${d} business days; a manager will calculate the exact cost.`,
       recoAsk: '\n\n📄 Source: catalog.md, delivery_faq.md\n\nWould you like to place a request?',
-      recoChips: ['Yes, place a request', 'Pick for another crop', 'Payment terms', 'Call a manager'],
+      recoChips: ['What is the payback?', 'Yes, place a request', 'Pick for another crop', 'Call a manager'],
       priceHead: 'Prices as of 01.10.2026, VAT included, delivery excluded (50 kg bag):\n',
       priceFoot: '\n📄 Source: catalog.md\nShall I pick a product for your crop?',
       priceOne: (n, p, use, norm) => `${n}, 50 kg bag — ${fmt(p)} ₸. ${use} Rate: ${norm} kg/ha.\n\n📄 Source: catalog.md`,
@@ -126,10 +141,25 @@
       no: /(no|cancel|нет|отмен|жоқ)/i,
       defaultReq: 'Fertilizer consultation',
       other: 'Pick for another crop',
+      roiNeed: "Let's first build a nutrition program for your crop — then I'll calculate the payback.",
+      roi: (c, a, cost, upl, extraT, price, rev, profit, pct) =>
+        `Estimated payback for ${c.toLowerCase()} on ${a} ha:\n• Fertilizer cost: ≈ ${fmt(cost)} ₸\n• Expected extra yield: ≈ ${extraT} t (${upl} t/ha)\n• Extra revenue at ${fmt(price)} ₸/t: ≈ ${fmt(rev)} ₸\n• Net effect: ≈ ${fmt(profit)} ₸ (${pct}% of cost)\n\nThis is an estimate based on demo assumptions, not a guarantee: results depend on weather, soil and agronomy. An agronomist will make the exact calculation.\n\n📄 Source: catalog.md, section "Payback assumptions"`,
+      roiChips: ['Yes, place a request', 'Pick for another crop', 'Call a manager'],
+      docHelp: 'I can review a contract, invoice or commercial offer: I will find amounts, dates, deadlines and penalties. Tap 📎 next to the message box and choose a file (.txt or .pdf) — it is processed only in your browser. Or try the sample.',
+      sampleChip: 'Check the sample contract',
+      docRead: (n) => `I read the document "${n}". Key points:`,
+      docAmounts: 'Amounts', docDates: 'Dates', docTerms: 'Deadlines', docPen: 'Obligations and penalties', docNone: 'not found',
+      docNothing: "I didn't find amounts, dates or deadlines in the text. It may not be a contract, or the text could not be extracted.",
+      docDisclaimer: 'This is an automatic overview, not legal advice. Please check important terms with a manager or a lawyer.',
+      docChips: ['What are the deadlines in the document?', 'What are the penalties in the document?', 'What are the amounts in the document?', 'Pass to a manager'],
+      docBy: (n) => `From the document "${n}":`,
+      docUnsupported: 'For now I read text files and PDFs (.txt, .md, .csv, .pdf). Photos and scans need live mode with recognition.',
+      docTooBig: 'The file is too large (2 MB max).',
+      docPdfFail: 'Could not read the PDF. Please try a text file.',
     },
     kk: {
       hello: `Сәлеметсіз бе! Здравствуйте! Мен Aqyl — ${COMPANY} компаниясының ЖИ-кеңесшісімін. Дақылға тыңайтқыш таңдап, құнын есептеп, құжаттар бойынша сұрақтарға жауап беріп, өтінім қалдыруға көмектесемін. Қалай көмектесе аламын?`,
-      chips: ['Тыңайтқыш таңдау', 'Каталог бағасы', 'Жеткізу және төлем', 'Жиі қойылатын сұрақтар', 'Өтінім қалдыру', 'Менеджерді шақыру'],
+      chips: ['Тыңайтқыш таңдау', 'Каталог бағасы', 'Жеткізу және төлем', 'Құжатты талдау', 'Жиі қойылатын сұрақтар', 'Өтінім қалдыру', 'Менеджерді шақыру'],
       faqIntro: 'Бізден жиі сұрайтындар осылар. Сұрақты таңдаңыз немесе өзіңіз жазыңыз:',
       faqChips: ['Қай аймаққа жеткізесіздер?', 'Тыңайтқышты қашан енгізу керек?', 'Тыңайтқышты қалай сақтау керек?', 'Қандай қаптама бар?', 'Көтерме жеңілдік', 'Сертификаттар', 'Байланыс және жұмыс кестесі', 'Сен кімсің?'],
       askCrop: 'Қай дақылға тыңайтқыш таңдаймыз?',
@@ -144,7 +174,7 @@
       recoMin: ' Ең аз тапсырыс — 1 тонна.',
       recoDeliv: (r, d) => `\n«${r}» аймағына жеткізу — шамамен ${d} жұмыс күні, нақты құнын менеджер есептейді.`,
       recoAsk: '\n\n📄 Дереккөз: catalog.md, delivery_faq.md\n\nӨтінім ресімдейік пе?',
-      recoChips: ['Иә, өтінім ресімдеу', 'Басқа дақылға таңдау', 'Төлем шарттары', 'Менеджерді шақыру'],
+      recoChips: ['Қайтарымы қандай?', 'Иә, өтінім ресімдеу', 'Басқа дақылға таңдау', 'Менеджерді шақыру'],
       priceHead: 'Бағалар 01.10.2026 күніне, ҚҚС-пен, жеткізусіз (50 кг қап):\n',
       priceFoot: '\n📄 Дереккөз: catalog.md\nДақылыңызға өнім таңдап берейін бе?',
       priceOne: (n, p, use, norm) => `${n}, 50 кг қап — ${fmt(p)} ₸. ${use} Нормасы: ${norm} кг/га.\n\n📄 Дереккөз: catalog.md`,
@@ -182,13 +212,31 @@
       no: /(жоқ|бас тарт|болдыр|нет|отмен|cancel)/i,
       defaultReq: 'Тыңайтқыш бойынша кеңес',
       other: 'Басқа дақылға таңдау',
+      roiNeed: 'Алдымен дақылыңызға қоректендіру бағдарламасын таңдайық — сонда қайтарымын есептеймін.',
+      roi: (c, a, cost, upl, extraT, price, rev, profit, pct) =>
+        `«${c}» дақылы үшін ${a} га-ға шамамен қайтарым:\n• Тыңайтқыш шығыны: ≈ ${fmt(cost)} ₸\n• Күтілетін өнім өсімі: ≈ ${extraT} т (${upl} т/га)\n• ${fmt(price)} ₸/т бағасымен қосымша түсім: ≈ ${fmt(rev)} ₸\n• Таза нәтиже: ≈ ${fmt(profit)} ₸ (шығынның ${pct}%)\n\nБұл демо-болжамдарға негізделген бағалау, кепілдік емес: нәтиже ауа райына, топыраққа және агротехникаға байланысты. Нақты есепті агроном жасайды.\n\n📄 Дереккөз: catalog.md, «Қайтарым болжамдары» бөлімі`,
+      roiChips: ['Иә, өтінім ресімдеу', 'Басқа дақылға таңдау', 'Менеджерді шақыру'],
+      docHelp: 'Шартты, шотты немесе коммерциялық ұсынысты талдай аламын: сомаларды, күндерді, мерзімдер мен айыппұлдарды табамын. Хабарлама жолындағы 📎 басып, файлды (.txt немесе .pdf) таңдаңыз — ол тек сіздің браузеріңізде өңделеді. Немесе үлгіні көріңіз.',
+      sampleChip: 'Шарт үлгісін тексеру',
+      docRead: (n) => `«${n}» құжатын оқыдым. Негізгісі:`,
+      docAmounts: 'Сомалар', docDates: 'Күндер', docTerms: 'Мерзімдер', docPen: 'Міндеттемелер мен санкциялар', docNone: 'табылмады',
+      docNothing: 'Мәтіннен сома, күн немесе мерзім таппадым. Бұл шарт емес болуы мүмкін немесе мәтін алынбады.',
+      docDisclaimer: 'Бұл автоматты шолу, заңгерлік кеңес емес. Маңызды шарттарды менеджермен немесе заңгермен тексеріңіз.',
+      docChips: ['Құжатта қандай мерзімдер бар?', 'Құжатта қандай айыппұлдар бар?', 'Құжатта қандай сомалар бар?', 'Менеджерге беру'],
+      docBy: (n) => `«${n}» құжаты бойынша:`,
+      docUnsupported: 'Әзірге мәтіндік файлдар мен PDF оқимын (.txt, .md, .csv, .pdf). Фото мен сканерге танумен тірі режим керек.',
+      docTooBig: 'Файл тым үлкен (ең көбі 2 МБ).',
+      docPdfFail: 'PDF оқу мүмкін болмады. Мәтіндік файлды қолданып көріңіз.',
     },
   };
 
   const RX = {
     jail: /забудь|игнориру|промт|промпт|системн|инструкци[июя] (выше|свои)|ты теперь|prompt|ignore|system prompt|jailbreak|ұмыт|нұсқаулықты ұмыт/i,
-    returns: /возврат|вернуть|жалоб|претензи|не доволен|недоволен|ужасн|refund|return|complaint|қайтар|шағым/i,
+    returns: /возврат|вернуть|жалоб|претензи|не доволен|недоволен|ужасн|refund|return|complaint|қайтару|қайтарғым|шағым/i,
     manager: /менеджер|человек|оператор|живой|специалист|адам|manager|human|operator|agent/i,
+    docupload: /анализ документ|проверить договор|загрузить документ|образец договора|прикрепить|analy[sz]e (a )?document|sample contract|upload (a )?document|құжатты талда|шарт үлгісі/i,
+    docref: /документ|договор|құжат|шарт|document|contract/i,
+    roi: /окупаем|выгод|прибавк|рентабельн|сколько заработ|payback|profit|return on investment|\broi\b|қайтарым|пайда|табыс|ақталу/i,
     faq: /частые вопросы|^faq|жиі қойылатын|что спросить|help$|помощь/i,
     about: /кто ты|кто вы|ты бот|ты робот|ты человек|что умеешь|что ты можешь|о компании|чем занимаетесь|who are you|are you (a )?(bot|human|ai)|what can you|about (the )?company|сен кімсің|не істей аласың|компания туралы/i,
     regions: /какие регион|в какие регион|куда достав|все област|список област|по каким област|қай аймақ|қай облыс|which region|where do you deliver|all regions/i,
@@ -227,6 +275,34 @@
   const findCrop = (t) => Object.keys(CROP_RX).find((k) => CROP_RX[k].test(t));
   const findRegion = (t) => REGIONS.find((r) => r.rx.test(t));
 
+  // ---- анализ документа: достаём суммы, даты, сроки и санкции прямо из текста ----
+  const SAMPLE = `ДОГОВОР ПОСТАВКИ № 15/10-2026
+г. Астана, 15.10.2026
+
+ТОО «Дала-Агро» (Покупатель) и ${COMPANY} (Поставщик) заключили настоящий договор.
+
+1. Предмет. Поставщик обязуется поставить аммофос 11:46 в количестве 10 тонн и карбамид 46% в количестве 20 тонн.
+2. Цена и оплата. Общая сумма договора составляет 6 660 000 тенге, включая НДС. Покупатель обязан внести предоплату 50% (3 330 000 тенге) в течение 5 рабочих дней с даты подписания. Остаток оплачивается не позднее 30.11.2026.
+3. Поставка. Товар поставляется партиями до 20.03.2027 на склад Покупателя в Костанайской области силами Поставщика.
+4. Ответственность. За просрочку поставки Поставщик уплачивает пеню 0,1% от стоимости непоставленного товара за каждый день, но не более 10% от суммы договора. За просрочку оплаты Покупатель уплачивает пеню 0,1% за каждый день просрочки.
+5. Гарантия. Гарантийный срок хранения продукции составляет 12 месяцев со дня изготовления.
+6. Срок действия. Договор действует до 31.12.2027.`;
+
+  function extractDoc(raw) {
+    const text = raw.replace(/\r/g, '').replace(/[ \t ]+/g, ' ');
+    const uniq = (a) => [...new Set(a)];
+    const amounts = uniq([...text.matchAll(/(\d{1,3}(?: \d{3})+|\d{4,})(?:[.,]\d{1,2})?\s*(?:₸|тенге|тг\.?|kzt|tenge)/gi)]
+      .map((m) => fmt(parseInt(m[1].replace(/ /g, ''), 10)) + ' ₸')).slice(0, 6);
+    const dates = uniq([...text.matchAll(/\b\d{1,2}[./]\d{1,2}[./]\d{4}\b/g)].map((m) => m[0])).slice(0, 6);
+    const sentences = text.split(/(?<=[.;!?])\s+(?=[А-ЯA-ZӘІҢҒҮҰҚӨҺ0-9«"])|\n+/).map((s) => s.replace(/\s+/g, ' ').trim()).filter((s) => s.length > 15);
+    const cut = (s) => (s.length > 170 ? s.slice(0, 167) + '…' : s);
+    const terms = uniq(sentences.filter((s) => /в течение|не позднее|в срок|срок|до \d{1,2}\.\d{1,2}\.\d{4}|within|no later than|deadline|мерзім|дейін/i.test(s)).map(cut)).slice(0, 4);
+    const PEN = /штраф|пен[яиюе]|неустойк|penalt|fine|айыппұл/i;
+    const pens = uniq(sentences.filter((s) => PEN.test(s) || /обязан|обязуется|гаранти|предоплат|shall|obliged|prepayment|warranty|міндеттен/i.test(s)).map(cut))
+      .filter((s) => !terms.includes(s)).sort((a, b) => PEN.test(b) - PEN.test(a)).slice(0, 5);
+    return { amounts, dates, terms, pens };
+  }
+
   window.createDemo = function (startLang) {
     let lang = startLang || 'ru';
     let flow = null; // crop | area | region | name | contact | request | time | confirm
@@ -253,6 +329,7 @@
       });
       tons = +tons.toFixed(1);
       const disc = tons >= 50 ? 8 : tons >= 20 ? 5 : 0;
+      ctx.cost = sum * (1 - disc / 100);
       let text = L.recoHead(crop.name[lang], a, rName) + lines.join('\n') + L.recoTotal(sum);
       if (disc) text += L.recoDisc(fmtT(tons, lang), disc, sum * (1 - disc / 100));
       if (tons < 1) text += L.recoMin;
@@ -261,6 +338,24 @@
         crop.plan.map(([pk, norm]) => `${PRODUCTS[pk].name[lang]} ${fmtT((norm * a) / 1000, lang)} т`).join(', ');
       flow = null;
       return out(text, L.recoChips);
+    }
+
+    function docReply(name, content) {
+      const L = S[lang];
+      const f = extractDoc(content);
+      const none = !(f.amounts.length || f.dates.length || f.terms.length || f.pens.length);
+      ctx.doc = { name, f };
+      if (none) return out(L.docNothing, L.chips);
+      const sec = (h, a) => `${h}:\n` + (a.length ? a.map((x) => '• ' + x).join('\n') : L.docNone);
+      const text = [L.docRead(name), sec(L.docAmounts, f.amounts), sec(L.docDates, f.dates), sec(L.docTerms, f.terms), sec(L.docPen, f.pens)].join('\n\n') + '\n\n' + L.docDisclaimer;
+      return out(text, L.docChips);
+    }
+    function docAnswer(text, L) {
+      const f = ctx.doc.f;
+      const pick = /штраф|пен[яиюе]|неустойк|санкц|обязан|айыппұл|міндет|penalt|fine|oblig/i.test(text) ? [L.docPen, f.pens]
+        : /сумм|стоим|цен|сома|құн|баға|amount|sum|cost|price/i.test(text) ? [L.docAmounts, f.amounts]
+        : [L.docTerms, f.terms.concat(f.dates.length ? ['(' + L.docDates + ': ' + f.dates.join(', ') + ')'] : [])];
+      return out(L.docBy(ctx.doc.name) + '\n' + (pick[1].length ? pick[1].map((x) => '• ' + x).join('\n') : L.docNone) + '\n\n' + L.docDisclaimer, L.docChips);
     }
 
     function stepLead(text, L) {
@@ -296,13 +391,18 @@
       get lang() { return lang; },
       setLang(l) { if (S[l]) { lang = l; flow = null; ctx = {}; } },
       greeting() { return out(S[lang].hello, S[lang].chips); },
+      docReply,
+      docText: (k) => S[lang][k],
       reply(raw) {
         const text = raw.trim();
         if (!flow) lang = detectLang(text, lang);
         const L = S[lang];
 
+        if (!flow && text === L.sampleChip) return docReply('sample-contract.txt', SAMPLE);
         if (RX.cancel.test(text) && flow) { flow = null; ctx = {}; return out(L.cancel, L.chips); }
         if (RX.jail.test(text)) return out(L.jail, L.chips);
+        if (!flow && ctx.doc && RX.docref.test(text) && /срок|дат|штраф|пен[яиюе]|сумм|стоим|мерзім|айыппұл|сома|deadline|term|date|penalt|fine|amount|sum/i.test(text)) return docAnswer(text, L);
+        if (!flow && RX.docupload.test(text)) return out(L.docHelp, [L.sampleChip]);
 
         if (flow === 'crop') {
           const c = findCrop(text);
@@ -336,6 +436,11 @@
         if (RX.discount.test(text)) return out(L.discount, L.faqChips);
         if (RX.lead.test(text)) { flow = 'name'; return out(L.leadName); }
 
+        if (RX.roi.test(text)) {
+          if (!(ctx.crop && ctx.area && ctx.cost)) { flow = 'crop'; return out(L.roiNeed, cropChips()); }
+          const c = CROPS[ctx.crop], extraT = c.uplift * ctx.area, rev = extraT * c.cropPrice, profit = rev - ctx.cost;
+          return out(L.roi(c.name[lang], ctx.area, ctx.cost, fmtT(c.uplift, lang), fmtT(extraT, lang), c.cropPrice, rev, profit, Math.round((profit / ctx.cost) * 100)), L.roiChips);
+        }
         const crop = findCrop(text);
         if (crop && !PROD_RX.some(([, rx]) => rx.test(text))) { ctx = { crop }; return askArea(L); }
         if (RX.reco.test(text) || text === L.other) return askCrop(L);

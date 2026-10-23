@@ -1,4 +1,4 @@
-// Данные демо-версии (вымышленные): продукция, культуры, регионы. Используются и ботом, и сайтом.
+﻿// Данные демо-версии (вымышленные): продукция, культуры, регионы. Используются и ботом, и сайтом.
 (function () {
   const PRODUCTS = {
     urea: { price: 9500, tag: '46% N', norm: '100–150',
@@ -29,12 +29,12 @@
 
   // plan: [продукт, норма кг/га, этап]
   const CROPS = {
-    wheat: { icon: '🌾', name: { ru: 'Пшеница', kk: 'Бидай', en: 'Wheat' }, plan: [['ammofos', 75, 'sow'], ['urea', 125, 'top']] },
-    barley: { icon: '🌿', name: { ru: 'Ячмень', kk: 'Арпа', en: 'Barley' }, plan: [['ammofos', 60, 'sow'], ['selitra', 150, 'top']] },
-    sunflower: { icon: '🌻', name: { ru: 'Подсолнечник', kk: 'Күнбағыс', en: 'Sunflower' }, plan: [['npk102626', 150, 'sow'], ['ams', 100, 'top']] },
-    corn: { icon: '🌽', name: { ru: 'Кукуруза', kk: 'Жүгері', en: 'Corn' }, plan: [['npk161616', 250, 'base'], ['urea', 150, 'top']] },
-    rapeseed: { icon: '🌼', name: { ru: 'Рапс', kk: 'Рапс', en: 'Rapeseed' }, plan: [['ams', 150, 'top'], ['dsp', 80, 'sow']] },
-    potato: { icon: '🥔', name: { ru: 'Картофель', kk: 'Картоп', en: 'Potato' }, plan: [['npk161616', 400, 'base'], ['kcl', 150, 'base']] },
+    wheat: { icon: '🌾', uplift: 0.6, cropPrice: 110000, name: { ru: 'Пшеница', kk: 'Бидай', en: 'Wheat' }, plan: [['ammofos', 75, 'sow'], ['urea', 125, 'top']] },
+    barley: { icon: '🌿', uplift: 0.6, cropPrice: 95000, name: { ru: 'Ячмень', kk: 'Арпа', en: 'Barley' }, plan: [['ammofos', 60, 'sow'], ['selitra', 150, 'top']] },
+    sunflower: { icon: '🌻', uplift: 0.4, cropPrice: 230000, name: { ru: 'Подсолнечник', kk: 'Күнбағыс', en: 'Sunflower' }, plan: [['npk102626', 150, 'sow'], ['ams', 100, 'top']] },
+    corn: { icon: '🌽', uplift: 1.8, cropPrice: 90000, name: { ru: 'Кукуруза', kk: 'Жүгері', en: 'Corn' }, plan: [['npk161616', 250, 'base'], ['urea', 150, 'top']] },
+    rapeseed: { icon: '🌼', uplift: 0.4, cropPrice: 250000, name: { ru: 'Рапс', kk: 'Рапс', en: 'Rapeseed' }, plan: [['ams', 150, 'top'], ['dsp', 80, 'sow']] },
+    potato: { icon: '🥔', uplift: 3, cropPrice: 120000, name: { ru: 'Картофель', kk: 'Картоп', en: 'Potato' }, plan: [['npk161616', 400, 'base'], ['kcl', 150, 'base']] },
   };
   const CROP_RX = {
     wheat: /пшениц|бидай|wheat/i, barley: /ячмен|арпа|barley/i, sunflower: /подсолнеч|күнбағыс|sunflower/i,
@@ -67,3 +67,4 @@
 
   window.AQYL_DATA = { PRODUCTS, CROPS, CROP_RX, REGIONS };
 })();
+

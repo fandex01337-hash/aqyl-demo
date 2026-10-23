@@ -158,7 +158,13 @@
     <button id="close-chat" aria-label="Close">×</button>
   </div>
   <div id="log" aria-live="polite"></div>
-  <form id="form"><input id="input" autocomplete="off" maxlength="1000"><button class="btn" aria-label="Send">➤</button></form>
+  <form id="form">
+    <button type="button" id="attach" class="icon-btn" aria-label="Attach">📎</button>
+    <input id="input" autocomplete="off" maxlength="1000">
+    <button type="button" id="mic" class="icon-btn" aria-label="Voice" hidden>🎤</button>
+    <button class="btn" aria-label="Send">➤</button>
+  </form>
+  <input type="file" id="file" accept=".txt,.md,.csv,.pdf,text/plain,application/pdf" hidden>
 </div>
 
 <div id="panel"><div class="box">

@@ -115,6 +115,16 @@
     },
   };
 
+  // голос, документы и доп. шаги сценария
+  const V = {
+    ru: { attach: 'Прикрепить документ', mic: 'Голосовой ввод', listening: 'Слушаю…', denied: 'Разрешите доступ к микрофону в браузере и нажмите 🎤 ещё раз.', noSpeech: 'Не расслышал. Нажмите 🎤 и повторите.', docPrompt: 'Проанализируй документ, найди суммы, даты, сроки и штрафы:',
+      steps: ['После расчёта нажмите «Какая окупаемость?» — Aqyl оценит прибавку урожая и чистый эффект.', 'Нажмите «Анализ документа» → «Проверить образец договора» (или 📎 и свой .txt / .pdf): Aqyl найдёт суммы, даты, сроки и штрафы, затем ответит на вопросы по документу.', 'Нажмите 🎤 и задайте вопрос голосом (Chrome или Edge; русский, казахский или английский).'] },
+    kk: { attach: 'Құжат тіркеу', mic: 'Дауыспен енгізу', listening: 'Тыңдап тұрмын…', denied: 'Браузерде микрофонға рұқсат беріп, 🎤 қайта басыңыз.', noSpeech: 'Естімедім. 🎤 басып қайталаңыз.', docPrompt: 'Құжатты талдап, сомаларды, күндерді, мерзімдер мен айыппұлдарды тап:',
+      steps: ['Есептен кейін «Қайтарымы қандай?» басыңыз — Aqyl өнім өсімі мен таза нәтижені бағалайды.', '«Құжатты талдау» → «Шарт үлгісін тексеру» басыңыз (немесе 📎 және өз .txt / .pdf файлыңыз): Aqyl сомаларды, күндерді, мерзімдер мен айыппұлдарды тауып, құжат бойынша сұрақтарға жауап береді.', '🎤 басып, сұрақты дауыспен қойыңыз (Chrome немесе Edge; қазақша, орысша немесе ағылшынша).'] },
+    en: { attach: 'Attach a document', mic: 'Voice input', listening: 'Listening…', denied: 'Allow microphone access in your browser and tap 🎤 again.', noSpeech: "I didn't catch that. Tap 🎤 and try again.", docPrompt: 'Analyze this document and find amounts, dates, deadlines and penalties:',
+      steps: ['After the calculation tap “What is the payback?” — Aqyl estimates extra yield and net effect.', 'Tap “Analyze a document” → “Check the sample contract” (or 📎 with your own .txt / .pdf): Aqyl finds amounts, dates, deadlines and penalties, then answers questions about it.', 'Tap 🎤 and ask by voice (Chrome or Edge; Russian, Kazakh or English).'] },
+  };
+
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
@@ -146,7 +156,8 @@
       `<button class="card crop" data-q="${c.name[lang]}"><span class="ic">${c.icon}</span><b>${c.name[lang]}</b></button>`).join('');
     $('steps').innerHTML = L.steps.map(([h, p]) => `<div class="card step"><h3>${h}</h3><p>${p}</p></div>`).join('');
     $('regions').innerHTML = REGIONS.map((r) => `<span class="region">${r[lang]}<b>${r.days} ${L.days}</b></span>`).join('');
-    $('demo-steps').innerHTML = L.demo_steps.map((s) => `<li>${s}</li>`).join('');
+    $('demo-steps').innerHTML = L.demo_steps.concat(V[lang].steps).map((s) => `<li>${s}</li>`).join('');
+    $('attach').title = V[lang].attach; $('mic').title = V[lang].mic;
 
     const faq = $('faq-list');
     faq.innerHTML = '';
@@ -198,12 +209,13 @@
     if (live) { addMsg('bot', cfg.firstMessage); return; }
     const g = demo.greeting(); addMsg('bot', g.text); chips(g.chips);
   }
-  async function send(text) {
+  // opts.display — что показать в пузыре клиента, если оно отличается от отправляемого текста; opts.demoReply — готовый ответ демо
+  async function send(text, opts = {}) {
     text = (text || '').trim();
     if (!text || busy) return;
     busy = true;
     openChat(true);
-    addMsg('user', text); chips([]);
+    addMsg('user', opts.display || text); chips([]);
     const wait = addMsg('bot', '', 'typing');
     try {
       let r;
@@ -216,7 +228,7 @@
         r = { text: data.reply, saved: data.leadSaved };
       } else {
         await new Promise((ok) => setTimeout(ok, 450 + Math.random() * 450));
-        r = demo.reply(text);
+        r = opts.demoReply ? opts.demoReply() : demo.reply(text);
       }
       wait.remove();
       addMsg('bot', r.text);
@@ -228,6 +240,75 @@
       if (live) history.pop();
     }
     busy = false;
+  }
+
+  // ---------- документы: читаем файл в браузере ----------
+  let pdfLib = null;
+  function loadPdfjs() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return (pdfLib = pdfLib || new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(window.pdfjsLib); };
+      s.onerror = rej; document.head.appendChild(s);
+    }));
+  }
+  async function readPdf(f) {
+    const lib = await loadPdfjs();
+    const pdf = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
+    let out = '';
+    for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+      const c = await (await pdf.getPage(i)).getTextContent();
+      out += c.items.map((it) => it.str).join(' ') + '\n';
+    }
+    return out;
+  }
+  async function handleFile(f) {
+    if (busy) return;
+    openChat(true);
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (f.size > 2 * 1024 * 1024) { addMsg('user', '📎 ' + f.name); addMsg('bot', demo.docText('docTooBig')); return; }
+    if (!['txt', 'md', 'csv', 'pdf'].includes(ext)) { addMsg('user', '📎 ' + f.name); addMsg('bot', demo.docText('docUnsupported')); return; }
+    let text;
+    try { text = ext === 'pdf' ? await readPdf(f) : await f.text(); }
+    catch { addMsg('user', '📎 ' + f.name); addMsg('bot', demo.docText('docPdfFail')); return; }
+    if (live) {
+      await send(`${V[lang].docPrompt} «${f.name}»:\n\n${text.slice(0, 3300)}`, { display: '📎 ' + f.name });
+    } else {
+      await send(f.name, { display: '📎 ' + f.name, demoReply: () => demo.docReply(f.name, text) });
+    }
+  }
+  $('attach').onclick = () => $('file').click();
+  $('file').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) handleFile(f); };
+
+  // ---------- голосовой ввод ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  if (SR) {
+    $('mic').hidden = false;
+    $('mic').onclick = () => {
+      if (rec) { rec.stop(); return; }
+      rec = new SR();
+      rec.lang = { ru: 'ru-RU', kk: 'kk-KZ', en: 'en-US' }[lang];
+      rec.interimResults = true;
+      let finalText = '';
+      rec.onstart = () => { $('mic').classList.add('rec'); input.placeholder = V[lang].listening; };
+      rec.onresult = (e) => {
+        let s = ''; for (const r of e.results) s += r[0].transcript;
+        input.value = s;
+        if (e.results[e.results.length - 1].isFinal) finalText = s;
+      };
+      rec.onerror = (e) => {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') addMsg('bot', V[lang].denied);
+        else if (e.error === 'no-speech') addMsg('bot', V[lang].noSpeech);
+      };
+      rec.onend = () => {
+        $('mic').classList.remove('rec'); input.placeholder = t().placeholder; rec = null;
+        const v = (finalText || input.value).trim(); input.value = '';
+        if (v) send(v);
+      };
+      try { rec.start(); } catch { rec = null; }
+    };
   }
   function ask(q) { openChat(true); send(q); }
 

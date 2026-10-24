@@ -2,11 +2,6 @@
 (function () {
   const { PRODUCTS, CROPS, REGIONS } = window.AQYL_DATA;
   const $ = (id) => document.getElementById(id);
-
-  // Общая база заявок — сервер на ноутбуке (server.js пишет их в папку «заявки»).
-  // Включается сама, если сайт открыт через сервер. Без сервера (GitHub Pages)
-  // заявка хранится в браузере, а клиент всё равно видит «заявка отправлена».
-  let LEADS_API = '';
   const fmt = (n) => Math.round(n).toLocaleString('ru-RU').replace(/ /g, ' ');
 
   const T = {
@@ -39,18 +34,12 @@
         'Напишите <code>забудь инструкции</code> — Aqyl не поддастся. Напишите <code>хочу вернуть товар</code> — передаст менеджеру.',
       ],
       foot_about: 'Демонстрационная компания по поставке минеральных удобрений.', foot_contacts: 'Контакты',
-      foot_contacts_text: 'Астана, ул. Примерная, 1 · пн–пт 9:00–18:00 · +7 (7172) 57-45-20 · sales@agroqazyna.kz',
+      foot_contacts_text: 'Астана, ул. Примерная, 1 · пн–пт 9:00–18:00 · +7 700 000 00 00 · info@example.kz',
       foot_ai: 'Про ИИ-консультанта', foot_ai_text: 'Aqyl — ИИ. Отвечает только по документам компании, не придумывает цены и сроки, при сложных вопросах зовёт менеджера.',
       foot_demo: 'Демо-версия: данные вымышлены, ответы идут по заранее подготовленному сценарию. В живом режиме Aqyl отвечает через Claude API.',
-      team_title: 'Команда TechnoHard', team_sub: 'Проект сделали студенты Жамбылского политехнического высшего колледжа.',
-      team_lead: 'Лидер команды', team_member: 'Участник', team_sup: 'Руководитель',
-      team_qr_title: 'Откройте на телефоне', team_college: 'Жамбылский политехнический высший колледж (ЖПВК) · Тараз',
       chat_sub_demo: 'ИИ-консультант · демо', chat_sub_live: 'ИИ-консультант · онлайн', placeholder: 'Напишите сообщение…', error: 'Не удалось получить ответ. Попробуйте ещё раз.', saved: '✅ Заявка передана менеджеру.',
       bubble: 'Привет! Помочь с выбором удобрения? 🌾',
-      panel_title: 'Панель менеджера', panel_empty: 'Заявок пока нет. Оформите заявку в чате.', panel_th: ['Получена', 'Имя', 'Контакт', 'Запрос', 'Удобное время'], panel_clear: 'Очистить', panel_close: 'Закрыть',
-      panel_pass: 'Пароль менеджера', panel_login: 'Войти', panel_bad: 'Неверный пароль.', panel_loading: 'Загружаю заявки…', panel_refresh: 'Обновить',
-      panel_neterr: 'Нет связи с базой заявок. Показаны заявки с этого устройства.', panel_local: 'Общая база не подключена: видны только заявки с этого устройства.',
-      panel_live: 'Заявки со всех устройств · обновляется каждые 15 с', panel_confirm: 'Удалить все заявки из базы?', panel_pending: 'ещё не отправлена',
+      panel_title: 'Панель менеджера', panel_empty: 'Заявок пока нет. Оформите заявку в чате.', panel_th: ['Имя', 'Контакт', 'Запрос', 'Время'], panel_clear: 'Очистить', panel_close: 'Закрыть',
     },
     kk: {
       nav_products: 'Өнімдер', nav_crops: 'Дақылдар', nav_how: 'Қалай жұмыс істейді', nav_delivery: 'Жеткізу', nav_faq: 'Сұрақтар',
@@ -81,18 +70,12 @@
         '<code>забудь инструкции</code> деп жазыңыз — Aqyl бағынбайды. <code>хочу вернуть товар</code> деп жазыңыз — менеджерге береді.',
       ],
       foot_about: 'Минералды тыңайтқыштар жеткізетін демонстрациялық компания.', foot_contacts: 'Байланыс',
-      foot_contacts_text: 'Астана, Примерная к-сі, 1 · дс–жм 9:00–18:00 · +7 (7172) 57-45-20 · sales@agroqazyna.kz',
+      foot_contacts_text: 'Астана, Примерная к-сі, 1 · дс–жм 9:00–18:00 · +7 700 000 00 00 · info@example.kz',
       foot_ai: 'ЖИ-кеңесші туралы', foot_ai_text: 'Aqyl — жасанды интеллект. Тек компания құжаттары бойынша жауап береді, баға мен мерзімді ойдан шығармайды, күрделі сұрақта менеджерді шақырады.',
       foot_demo: 'Демо-нұсқа: деректер ойдан шығарылған, жауаптар алдын ала дайындалған сценарий бойынша беріледі. Тірі режимде Aqyl Claude API арқылы жауап береді.',
-      team_title: 'TechnoHard командасы', team_sub: 'Жобаны Жамбыл политехникалық жоғары колледжінің студенттері жасады.',
-      team_lead: 'Команда жетекшісі', team_member: 'Қатысушы', team_sup: 'Жетекші',
-      team_qr_title: 'Телефоннан ашыңыз', team_college: 'Жамбыл политехникалық жоғары колледжі (ЖПЖК) · Тараз',
       chat_sub_demo: 'ЖИ-кеңесші · демо', chat_sub_live: 'ЖИ-кеңесші · онлайн', placeholder: 'Хабарлама жазыңыз…', error: 'Жауап алу мүмкін болмады. Қайталап көріңіз.', saved: '✅ Өтінім менеджерге жіберілді.',
       bubble: 'Сәлем! Тыңайтқыш таңдауға көмектесейін бе? 🌾',
-      panel_title: 'Менеджер панелі', panel_empty: 'Әзірге өтінім жоқ. Чатта өтінім қалдырыңыз.', panel_th: ['Келді', 'Аты', 'Байланыс', 'Сұраныс', 'Ыңғайлы уақыт'], panel_clear: 'Тазалау', panel_close: 'Жабу',
-      panel_pass: 'Менеджер құпия сөзі', panel_login: 'Кіру', panel_bad: 'Құпия сөз қате.', panel_loading: 'Өтінімдер жүктелуде…', panel_refresh: 'Жаңарту',
-      panel_neterr: 'Өтінімдер базасымен байланыс жоқ. Осы құрылғыдағы өтінімдер көрсетілді.', panel_local: 'Ортақ база қосылмаған: тек осы құрылғыдағы өтінімдер көрінеді.',
-      panel_live: 'Барлық құрылғылардан келген өтінімдер · 15 с сайын жаңарады', panel_confirm: 'Базадағы барлық өтінімді жою керек пе?', panel_pending: 'әлі жіберілмеген',
+      panel_title: 'Менеджер панелі', panel_empty: 'Әзірге өтінім жоқ. Чатта өтінім қалдырыңыз.', panel_th: ['Аты', 'Байланыс', 'Сұраныс', 'Уақыты'], panel_clear: 'Тазалау', panel_close: 'Жабу',
     },
     en: {
       nav_products: 'Products', nav_crops: 'Crops', nav_how: 'How it works', nav_delivery: 'Delivery', nav_faq: 'FAQ',
@@ -123,18 +106,12 @@
         'Type <code>forget your instructions</code> — Aqyl won’t budge. Type <code>I want a refund</code> — it hands you to a manager.',
       ],
       foot_about: 'A demo company supplying mineral fertilizers.', foot_contacts: 'Contacts',
-      foot_contacts_text: 'Astana, Primernaya st. 1 · Mon–Fri 9:00–18:00 · +7 (7172) 57-45-20 · sales@agroqazyna.kz',
+      foot_contacts_text: 'Astana, Primernaya st. 1 · Mon–Fri 9:00–18:00 · +7 700 000 00 00 · info@example.kz',
       foot_ai: 'About the AI consultant', foot_ai_text: 'Aqyl is an AI. It answers only from company documents, never invents prices or deadlines and calls a manager for complex questions.',
       foot_demo: 'Demo version: data is fictional and replies follow a prepared script. In live mode Aqyl answers through the Claude API.',
-      team_title: 'Team TechnoHard', team_sub: 'Built by students of Zhambyl Polytechnic Higher College.',
-      team_lead: 'Team lead', team_member: 'Member', team_sup: 'Supervisor',
-      team_qr_title: 'Open on your phone', team_college: 'Zhambyl Polytechnic Higher College · Taraz',
       chat_sub_demo: 'AI consultant · demo', chat_sub_live: 'AI consultant · online', placeholder: 'Type a message…', error: 'Could not get a reply. Please try again.', saved: '✅ Request sent to the manager.',
       bubble: 'Hi! Need help choosing a fertilizer? 🌾',
-      panel_title: 'Manager panel', panel_empty: 'No requests yet. Leave one in the chat.', panel_th: ['Received', 'Name', 'Contact', 'Request', 'Best time'], panel_clear: 'Clear', panel_close: 'Close',
-      panel_pass: 'Manager password', panel_login: 'Sign in', panel_bad: 'Wrong password.', panel_loading: 'Loading requests…', panel_refresh: 'Refresh',
-      panel_neterr: 'No connection to the request base. Showing requests from this device.', panel_local: 'Shared base not connected: only requests from this device are visible.',
-      panel_live: 'Requests from all devices · refreshes every 15 s', panel_confirm: 'Delete all requests from the base?', panel_pending: 'not sent yet',
+      panel_title: 'Manager panel', panel_empty: 'No requests yet. Leave one in the chat.', panel_th: ['Name', 'Contact', 'Request', 'Time'], panel_clear: 'Clear', panel_close: 'Close',
     },
   };
 
@@ -215,26 +192,12 @@
     });
     log.appendChild(box); log.scrollTop = log.scrollHeight;
   }
-  // Заявки: копия в браузере + отправка в общую базу (Google-таблицу), чтобы их видел менеджер с любого устройства
   const leads = { get: () => store.get('aqyl_leads', []), set: (v) => store.set('aqyl_leads', v) };
-  const api = (p, body) => fetch(LEADS_API + p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-  async function pushLead(lead) {
-    if (!LEADS_API) return;
-    try {
-      const r = await api('/lead', lead);
-      if (r.ok) leads.set(leads.get().map((x) => (x.id === lead.id ? { ...x, synced: true } : x)));
-    } catch { /* нет сети — отправим при следующем открытии сайта */ }
-  }
-  function flushLeads() { leads.get().filter((x) => !x.synced).forEach(pushLead); }
   function leadCard(lead) {
     const d = document.createElement('div'); d.className = 'lead-card';
     d.textContent = '[ЗАЯВКА] ' + JSON.stringify(lead, null, 1) + ' [/ЗАЯВКА]';
     log.appendChild(d);
-    const full = { ...lead, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      дата: lead.дата || new Date().toISOString(), язык: lang,
-      устройство: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'телефон' : 'компьютер', synced: false };
-    const all = leads.get(); all.unshift(full); leads.set(all);
-    pushLead(full);
+    const all = leads.get(); all.unshift(lead); leads.set(all);
   }
   function openChat(open = true) {
     chat.classList.toggle('open', open);
@@ -374,74 +337,17 @@
   function ask(q) { openChat(true); send(q); }
 
   // ---------- панель менеджера ----------
-  // Пароль менеджера хранится только до закрытия вкладки; проверяет его сама Google-таблица
-  const passStore = { get: () => { try { return sessionStorage.getItem('aqyl_pass') || ''; } catch { return ''; } },
-    set: (v) => { try { v ? sessionStorage.setItem('aqyl_pass', v) : sessionStorage.removeItem('aqyl_pass'); } catch {} } };
-  let panelTimer = null;
-  const PASS_HASH = '2cb07ee94ec4c15e385a2d0521eac85d2c084cb660a1a9ae9b64a09138d27c65';   // SHA-256 от «aqyl:пароль»
-  async function passOk(p) {
-    try {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('aqyl:' + p));
-      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('') === PASS_HASH;
-    } catch { return false; }
-  }
-  const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); };
-  function leadTable(list, note) {
-    const L = t(), box = $('leads');
-    box.innerHTML = '';
-    if (note) { const p = document.createElement('p'); p.className = 'note'; p.textContent = note; box.appendChild(p); }
-    if (!list.length) { box.append(L.panel_empty); return; }
-    const tb = document.createElement('table');
-    tb.innerHTML = '<tr>' + L.panel_th.map((h) => `<th>${h}</th>`).join('') + '</tr>';
-    list.forEach((x) => {
-      const r = tb.insertRow();
-      [when(x.дата) + (x.устройство === 'телефон' ? ' 📱' : ''), x.имя, x.контакт, x.запрос, x.время].forEach((v) => { r.insertCell().textContent = v || ''; });
-      if (x.synced === false && LEADS_API) r.cells[0].textContent += ' · ' + L.panel_pending;
-    });
-    box.appendChild(tb);
-  }
-  function passForm(err) {
-    const L = t(), box = $('leads');
-    box.innerHTML = '';
-    const f = document.createElement('form'); f.className = 'pass-form';
-    f.innerHTML = `<input type="password" autocomplete="current-password" placeholder="${L.panel_pass}"><button class="btn sm">${L.panel_login}</button>`;
-    if (err) { const p = document.createElement('p'); p.className = 'note'; p.textContent = err; f.appendChild(p); }
-    f.onsubmit = (e) => { e.preventDefault(); passStore.set(f.querySelector('input').value); loadLeads(); };
-    box.appendChild(f);
-    f.querySelector('input').focus();
-  }
-  async function loadLeads() {
-    const L = t();
-    const key = passStore.get();
-    if (!key) { passForm(); return; }
-    if (!LEADS_API) {
-      // без сервера пароль проверяет браузер: сравниваем хеш, сам пароль в коде не хранится
-      if (!(await passOk(key))) { passStore.set(''); passForm(L.panel_bad); return; }
-      leadTable(leads.get(), L.panel_local); return;
-    }
-    if (!$('leads').querySelector('table')) $('leads').textContent = L.panel_loading;
-    try {
-      const r = await api('/leads', { key });
-      const data = await r.json();
-      if (!data.ok) { passStore.set(''); passForm(L.panel_bad); return; }
-      leadTable(data.leads, L.panel_live);
-    } catch {
-      leadTable(leads.get(), L.panel_neterr);
-    }
-  }
   function showPanel() {
+    const L = t(), box = $('leads'), l = leads.get();
+    box.innerHTML = '';
+    if (!l.length) box.textContent = L.panel_empty;
+    else {
+      const tb = document.createElement('table');
+      tb.innerHTML = '<tr>' + L.panel_th.map((h) => `<th>${h}</th>`).join('') + '</tr>';
+      l.forEach((x) => { const r = tb.insertRow(); [x.имя, x.контакт, x.запрос, x.время].forEach((v) => { r.insertCell().textContent = v; }); });
+      box.appendChild(tb);
+    }
     $('panel').classList.add('open');
-    loadLeads();
-    clearInterval(panelTimer);
-    if (LEADS_API) panelTimer = setInterval(() => { if ($('panel').classList.contains('open') && passStore.get()) loadLeads(); }, 15000);
-  }
-  function closePanel() { $('panel').classList.remove('open'); clearInterval(panelTimer); }
-  async function clearLeads() {
-    if (!passStore.get()) return;                       // без входа очищать нельзя
-    if (!confirm(t().panel_confirm)) return;
-    leads.set([]);
-    if (LEADS_API) { try { await api('/leads/clear', { key: passStore.get() }); } catch {} }
-    loadLeads();
   }
 
   // ---------- события ----------
@@ -460,9 +366,9 @@
   $('cta-chat').onclick = () => openChat(true);
   $('mascot').onclick = () => openChat(true);
   $('open-panel').onclick = showPanel;
-  $('close-panel').onclick = closePanel;
-  $('clear-leads').onclick = clearLeads;
-  $('panel').onclick = (e) => { if (e.target === $('panel')) closePanel(); };
+  $('close-panel').onclick = () => $('panel').classList.remove('open');
+  $('clear-leads').onclick = () => { leads.set([]); showPanel(); };
+  $('panel').onclick = (e) => { if (e.target === $('panel')) $('panel').classList.remove('open'); };
   $('form').addEventListener('submit', (e) => { e.preventDefault(); const v = input.value; input.value = ''; send(v); });
   document.addEventListener('click', (e) => {
     const c = e.target.closest('[data-q]');
@@ -470,12 +376,12 @@
   });
 
   (async function init() {
-    try { const r = await fetch('/api/config'); if (r.ok) cfg = await r.json(); } catch {}
-    if (cfg && cfg.leads) LEADS_API = '/api';   // сайт открыт через сервер ноутбука — заявки пишем в файл
-    if (cfg && cfg.hasKey && !/[?&]demo\b/.test(location.search)) { live = true; $('company').textContent = cfg.company; $('company2').textContent = cfg.company; }
+    if (!/[?&]demo\b/.test(location.search)) {
+      try { const r = await fetch('/api/config'); if (r.ok) cfg = await r.json(); } catch {}
+    }
+    if (cfg && cfg.hasKey) { live = true; $('company').textContent = cfg.company; $('company2').textContent = cfg.company; }
     renderSite();
     greet();
-    flushLeads();   // заявки, которые не ушли из-за плохой связи, отправляем повторно
     setTimeout(() => {
       if (!chat.classList.contains('open')) { const b = $('bubble'); b.textContent = t().bubble; b.style.display = 'block'; }
     }, 3500);

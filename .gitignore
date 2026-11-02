@@ -2,8 +2,11 @@ leads.jsonl
 .env
 node_modules/
 
-# Пароль панели менеджера и сами заявки — только на ноутбуке, не в GitHub
+# Пароль панели менеджера, заявки и запуск на ноутбуке — только локально, не в GitHub
 manager-password.txt
 заявки/
 start-server.vbs
 server-log.txt
+tunnel.ps1
+tunnel-log.txt
+ССЫЛКА на сайт.txt

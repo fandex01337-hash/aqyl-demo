@@ -6,7 +6,7 @@
   const fmt = (n) => Math.round(n).toLocaleString('ru-RU').replace(/ /g, ' ');
   const fmtT = (n, lang) => String(+n.toFixed(2)).replace('.', lang === 'en' ? '.' : ',');
   const AREAS = [10, 25, 50, 100, 250, 500, 1000, 5000];
-  const CONTACT = '+7 700 000 00 00, info@example.kz';
+  const CONTACT = '+7 (7172) 57-45-20, sales@agroqazyna.kz';
 
   const STAGE = {
     ru: { sow: 'при посеве', top: 'подкормка', base: 'под основную обработку' },
@@ -43,7 +43,7 @@
       payment: 'Оплата безналичная, по счёту: предоплата 50% или 100%. Постоянным клиентам по договору возможна отсрочка до 30 дней.\n\n📄 Источник: delivery_faq.md, раздел «Оплата»',
       discount: 'Оптовая скидка: от 20 тонн — 5%, от 50 тонн — 8%. Минимальный заказ — 1 тонна.\n\n📄 Источник: catalog.md, delivery_faq.md',
       docs: 'Сертификаты соответствия предоставляются на каждую партию по запросу — менеджер отправит их вместе со счётом. Паспорта безопасности — в разделе инструкций.\n\n📄 Источник: delivery_faq.md, раздел «FAQ»',
-      contacts: `Офис и склад: г. Астана, ул. Примерная, 1 (демо-адрес).\nГрафик: пн–пт 9:00–18:00.\nТел.: +7 700 000 00 00\nE-mail: info@example.kz\n\n📄 Источник: delivery_faq.md, раздел «Контакты»`,
+      contacts: `Офис и склад: г. Астана, ул. Примерная, 1 (демо-адрес).\nГрафик: пн–пт 9:00–18:00.\nТел.: +7 (7172) 57-45-20\nE-mail: sales@agroqazyna.kz\n\n📄 Источник: delivery_faq.md, раздел «Контакты»`,
       timing: 'Ориентир по инструкции: фосфорные и комплексные удобрения (аммофос, суперфосфат, NPK) вносят при посеве или под основную обработку, азотные (карбамид, селитра, сульфат аммония) — весной в подкормку по вегетации. Точные сроки зависят от культуры и региона — уточните у агронома или менеджера.\n\n📄 Источник: instructions.md, раздел «Внесение»',
       storage: 'Хранить в сухом закрытом складе, в оригинальной упаковке, вдали от влаги и огня. Гарантийный срок хранения — 12 месяцев со дня изготовления. Подробности — в паспорте безопасности продукции.\n\n📄 Источник: instructions.md, раздел «Хранение»',
       packaging: 'Мешки по 50 кг; биг-бэги по 1 т — по запросу при заказе от 5 т.\n\n📄 Источник: catalog.md, раздел «Фасовка»',
@@ -114,7 +114,7 @@
       payment: 'Payment is by bank transfer against an invoice: 50% or 100% prepayment. Regular clients can get up to 30 days deferral under a contract.\n\n📄 Source: delivery_faq.md',
       discount: 'Bulk discount: 5% from 20 tonnes, 8% from 50 tonnes. Minimum order is 1 tonne.\n\n📄 Source: catalog.md, delivery_faq.md',
       docs: 'Conformity certificates are provided for each batch on request; the manager sends them with the invoice. Safety data sheets are in the instructions section.\n\n📄 Source: delivery_faq.md',
-      contacts: 'Office and warehouse: Astana, Primernaya st. 1 (demo address).\nHours: Mon–Fri 9:00–18:00.\nPhone: +7 700 000 00 00\nE-mail: info@example.kz\n\n📄 Source: delivery_faq.md',
+      contacts: 'Office and warehouse: Astana, Primernaya st. 1 (demo address).\nHours: Mon–Fri 9:00–18:00.\nPhone: +7 (7172) 57-45-20\nE-mail: sales@agroqazyna.kz\n\n📄 Source: delivery_faq.md',
       timing: 'Per the instructions: phosphorus and complex fertilizers (ammophos, superphosphate, NPK) go in at sowing or with primary tillage; nitrogen ones (urea, nitrate, ammonium sulfate) in spring as in-season top dressing. Exact timing depends on the crop and region — please check with an agronomist or a manager.\n\n📄 Source: instructions.md',
       storage: 'Store in a dry covered warehouse, in original packaging, away from moisture and fire. Guaranteed shelf life is 12 months from the production date. See the product safety data sheet for details.\n\n📄 Source: instructions.md',
       packaging: '50 kg bags; 1 t big bags on request for orders from 5 t.\n\n📄 Source: catalog.md',
@@ -185,7 +185,7 @@
       payment: 'Төлем шот бойынша қолма-қол ақшасыз: 50% немесе 100% алдын ала төлем. Тұрақты клиенттерге келісімшарт бойынша 30 күнге дейін кейінге қалдыру мүмкін.\n\n📄 Дереккөз: delivery_faq.md',
       discount: 'Көтерме жеңілдік: 20 тоннадан — 5%, 50 тоннадан — 8%. Ең аз тапсырыс — 1 тонна.\n\n📄 Дереккөз: catalog.md, delivery_faq.md',
       docs: 'Сәйкестік сертификаттары әр партияға сұраныс бойынша беріледі — менеджер шотпен бірге жібереді. Қауіпсіздік паспорттары нұсқаулықтар бөлімінде.\n\n📄 Дереккөз: delivery_faq.md',
-      contacts: 'Кеңсе және қойма: Астана қ., Примерная к-сі, 1 (демо-мекенжай).\nЖұмыс кестесі: дс–жм 9:00–18:00.\nТел.: +7 700 000 00 00\nE-mail: info@example.kz\n\n📄 Дереккөз: delivery_faq.md',
+      contacts: 'Кеңсе және қойма: Астана қ., Примерная к-сі, 1 (демо-мекенжай).\nЖұмыс кестесі: дс–жм 9:00–18:00.\nТел.: +7 (7172) 57-45-20\nE-mail: sales@agroqazyna.kz\n\n📄 Дереккөз: delivery_faq.md',
       timing: 'Нұсқаулық бойынша: фосфорлы және кешенді тыңайтқыштар (аммофос, суперфосфат, NPK) себу кезінде немесе негізгі өңдеуге, азотты тыңайтқыштар (карбамид, селитра, аммоний сульфаты) көктемде вегетация кезінде қосымша қоректендіруге енгізіледі. Нақты мерзімі дақыл мен аймаққа байланысты — агроном немесе менеджерден нақтылаңыз.\n\n📄 Дереккөз: instructions.md',
       storage: 'Құрғақ жабық қоймада, түпнұсқа қаптамада, ылғал мен оттан аулақ сақтаңыз. Кепілдік сақтау мерзімі — өндірілген күннен бастап 12 ай. Толығырақ — өнімнің қауіпсіздік паспортында.\n\n📄 Дереккөз: instructions.md',
       packaging: '50 кг қаптар; 5 т-дан бастап тапсырысқа сұраныс бойынша 1 т биг-бэгтер.\n\n📄 Дереккөз: catalog.md',

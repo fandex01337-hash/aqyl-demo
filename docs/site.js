@@ -148,12 +148,32 @@
       steps: ['After the calculation tap “What is the payback?” — Aqyl estimates extra yield and net effect.', 'Tap “Analyze a document” → “Check the sample contract” (or 📎 with your own .txt / .pdf): Aqyl finds amounts, dates, deadlines and penalties, then answers questions about it.', 'Tap 🎤 and ask by voice (Chrome or Edge; Russian, Kazakh or English).', 'Test the bot’s brains: say or type in one sentence <code>two hundred fifty hectares of wheat in Akmola</code>, then <code>what about barley</code>, <code>fifty bags of urea</code> or <code>delivery to Atyrau and payment</code>. Typos and numbers in words are fine.'] },
   };
 
+  // подписи для кнопок-иконок (aria-label) и мелких элементов чата
+  const A = {
+    ru: { fab: 'Открыть чат с Aqyl', close: 'Закрыть чат', soundOn: 'Озвучка ответов включена', soundOff: 'Озвучка ответов выключена', send: 'Отправить',
+      clear: 'Очистить чат', copy: 'Копировать ответ', copied: 'Скопировано', retry: 'Повторить', typing: 'Aqyl печатает…', toTop: 'Наверх',
+      offline: 'Нет соединения с интернетом. Проверьте сеть и нажмите «Повторить».', removeFile: 'Убрать файл', copyPhone: 'Копировать номер',
+      langGroup: 'Язык сайта', badType: 'Можно прикрепить только .txt, .md, .csv или .pdf', tooBig: 'Файл больше 2 МБ' },
+    kk: { fab: 'Aqyl чатын ашу', close: 'Чатты жабу', soundOn: 'Жауаптарды дыбыстау қосулы', soundOff: 'Жауаптарды дыбыстау өшірулі', send: 'Жіберу',
+      clear: 'Чатты тазалау', copy: 'Жауапты көшіру', copied: 'Көшірілді', retry: 'Қайталау', typing: 'Aqyl жазып жатыр…', toTop: 'Жоғары',
+      offline: 'Интернет байланысы жоқ. Желіні тексеріп, «Қайталау» басыңыз.', removeFile: 'Файлды алып тастау', copyPhone: 'Нөмірді көшіру',
+      langGroup: 'Сайт тілі', badType: 'Тек .txt, .md, .csv немесе .pdf тіркеуге болады', tooBig: 'Файл 2 МБ-тан үлкен' },
+    en: { fab: 'Open chat with Aqyl', close: 'Close chat', soundOn: 'Reading answers aloud: on', soundOff: 'Reading answers aloud: off', send: 'Send',
+      clear: 'Clear chat', copy: 'Copy answer', copied: 'Copied', retry: 'Retry', typing: 'Aqyl is typing…', toTop: 'Back to top',
+      offline: 'No internet connection. Check your network and tap “Retry”.', removeFile: 'Remove file', copyPhone: 'Copy number',
+      langGroup: 'Site language', badType: 'Only .txt, .md, .csv or .pdf files can be attached', tooBig: 'The file is larger than 2 MB' },
+  };
+
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  let lang = store.get('aqyl_lang', null) || ((navigator.language || '').startsWith('kk') ? 'kk' : (navigator.language || '').startsWith('en') ? 'en' : 'ru');
+  // язык: ?lang= в ссылке (для hreflang) → сохранённый выбор → язык браузера (kk → ҚАЗ, ru → RU, остальные → EN)
+  const urlLang = new URLSearchParams(location.search).get('lang');
+  if (urlLang && T[urlLang]) store.set('aqyl_lang', urlLang);
+  const navLang = (navigator.language || '').toLowerCase();
+  let lang = store.get('aqyl_lang', null) || (navLang.startsWith('kk') ? 'kk' : navLang.startsWith('ru') ? 'ru' : 'en');
   if (!T[lang]) lang = 'ru';
   let live = false, busy = false, history = [], demo = createDemo(lang), cfg = null;
   const log = $('log'), input = $('input'), chat = $('chat');
@@ -182,28 +202,127 @@
     $('demo-steps').innerHTML = L.demo_steps.concat(V[lang].steps).map((s) => `<li>${s}</li>`).join('');
     $('attach').title = V[lang].attach; $('mic').title = V[lang].mic; $('speaker').title = V[lang].speaker;
 
-    const faq = $('faq-list');
+    const faq = $('faq-list'), faqLd = [];
     faq.innerHTML = '';
-    window.AQYL_FAQ_CHIPS(lang).forEach((q) => {
-      const d = document.createElement('details'); d.className = 'faq';
+    window.AQYL_FAQ_CHIPS(lang).forEach((q, i) => {
+      const d = document.createElement('details'); d.className = 'faq'; d.id = 'faq-' + (i + 1);
       const s = document.createElement('summary'); s.textContent = q;
       const a = document.createElement('div'); a.className = 'ans'; a.textContent = window.aqylAnswer(lang, q);
       const b = document.createElement('button'); b.className = 'btn sm ghost'; b.textContent = L.faq_more; b.style.marginBottom = '14px';
       b.onclick = () => ask(q);
+      // открытый вопрос попадает в адрес (#faq-N), чтобы ссылкой можно было поделиться
+      d.ontoggle = () => { if (d.open) window.history.replaceState(null, '', '#' + d.id); };
       d.append(s, a, b); faq.appendChild(d);
+      faqLd.push({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a.textContent } });
     });
+    $('ld-faq').textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: lang, mainEntity: faqLd });
+    openFaqFromHash();
+
+    // телефон и e-mail в подвале — кликабельные, номер копируется одной кнопкой
+    const contacts = document.querySelector('[data-i18n="foot_contacts_text"]');
+    contacts.textContent = ''; linkify(contacts, L.foot_contacts_text, true);
+    renderA11y();
+  }
+
+  // aria-label для кнопок-иконок на текущем языке
+  function renderA11y() {
+    const a = A[lang];
+    $('fab').setAttribute('aria-label', a.fab);
+    $('close-chat').setAttribute('aria-label', a.close);
+    $('clear-chat').setAttribute('aria-label', a.clear); $('clear-chat').title = a.clear;
+    $('attach').setAttribute('aria-label', V[lang].attach);
+    $('mic').setAttribute('aria-label', V[lang].mic);
+    $('send').setAttribute('aria-label', a.send);
+    $('to-top').setAttribute('aria-label', a.toTop); $('to-top').title = a.toTop;
+    document.querySelector('.lang').setAttribute('aria-label', a.langGroup);
+    document.querySelectorAll('.copy').forEach((b) => { b.setAttribute('aria-label', a.copy); b.title = a.copy; });
+    renderSpeaker();
+  }
+
+  // FAQ: ссылка вида #faq-3 открывает нужный вопрос
+  function openFaqFromHash() {
+    const m = location.hash.match(/^#faq-(\d+)$/);
+    const d = m && $('faq-' + m[1]);
+    if (!d) return;
+    d.open = true;
+    requestAnimationFrame(() => d.scrollIntoView({ block: 'start' }));
+  }
+
+  // текст с кликабельными телефонами (tel:) и почтой (mailto:)
+  const LINK_RE = /(\+7[\s(]*\d{3,4}[)\s]*\d{2,3}[\s-]?\d{2}[\s-]?\d{2}|[\w.+-]+@[\w-]+\.[\w.]+)/g;
+  function linkify(el, text, copyPhone) {
+    text.split(LINK_RE).forEach((part, i) => {
+      if (i % 2 === 0) { if (part) el.append(part); return; }
+      const mail = part.includes('@');
+      const a = document.createElement('a');
+      a.href = mail ? 'mailto:' + part : 'tel:+' + part.replace(/\D/g, '');
+      a.textContent = part; el.append(a);
+      if (!mail && copyPhone) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'copy-tel'; b.textContent = '⧉';
+        b.title = A[lang].copyPhone; b.setAttribute('aria-label', A[lang].copyPhone);
+        b.onclick = () => copyText(part, b);
+        el.append(' ', b);
+      }
+    });
+  }
+  // копирование в буфер; кнопка на секунду показывает ✓
+  async function copyText(text, btn) {
+    try { await navigator.clipboard.writeText(text); }
+    catch {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch {} ta.remove();
+    }
+    const old = btn.textContent; btn.textContent = '✓'; btn.title = A[lang].copied;
+    setTimeout(() => { btn.textContent = old; btn.title = btn.getAttribute('aria-label'); }, 1200);
   }
 
   // ---------- чат ----------
-  function addMsg(role, text, cls = '') {
+  // История переписки: хранится в браузере и восстанавливается после перезагрузки (отдельно для каждого языка)
+  const CHAT_KEY = 'aqyl_chat';
+  const saved = { get: () => store.get(CHAT_KEY, null), set: (v) => store.set(CHAT_KEY, v) };
+  function saveMsg(m) {
+    const s = saved.get();
+    const msgs = s && s.lang === lang ? s.msgs : [];
+    msgs.push(m);
+    saved.set({ lang, msgs: msgs.slice(-80) });
+  }
+  const hhmm = (ts) => new Date(ts).toLocaleTimeString(lang === 'en' ? 'en-GB' : 'ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+  // o.ts — время сообщения (при восстановлении), o.save === false — не записывать в историю
+  function addMsg(role, text, cls = '', o = {}) {
     const row = document.createElement('div');
     row.className = 'row ' + (role === 'user' ? 'user' : 'bot');
-    if (role !== 'user') row.innerHTML = '<svg class="av" viewBox="0 0 120 120"><use href="#aqyl-av"/></svg>';
+    if (role !== 'user') row.innerHTML = '<svg class="av" viewBox="0 0 120 120" aria-hidden="true"><use href="#aqyl-av"/></svg>';
     const m = document.createElement('div'); m.className = 'msg ' + cls;
-    if (cls === 'typing') m.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>'; else m.textContent = text;
-    row.appendChild(m); log.appendChild(row);
+    row.appendChild(m);
+    if (cls === 'typing') {
+      m.innerHTML = '<span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>';
+      m.setAttribute('role', 'status'); m.setAttribute('aria-label', A[lang].typing);
+    } else {
+      if (role === 'user') m.textContent = text; else linkify(m, text);
+      const ts = o.ts || Date.now();
+      const tm = document.createElement('time'); tm.className = 'ts'; tm.dateTime = new Date(ts).toISOString(); tm.textContent = hhmm(ts);
+      m.appendChild(tm);
+      if (role !== 'user') {
+        // кнопка копирования ответа — видна при наведении на сообщение
+        const c = document.createElement('button'); c.type = 'button'; c.className = 'copy'; c.textContent = '⧉';
+        c.title = A[lang].copy; c.setAttribute('aria-label', A[lang].copy);
+        c.onclick = () => copyText(text, c);
+        row.appendChild(c);
+      }
+      if (o.save !== false) saveMsg({ role, text, ts });
+    }
+    log.appendChild(row);
     log.scrollTop = log.scrollHeight;
     return row;
+  }
+  // ошибка сети или сервера: короткое сообщение и кнопка «Повторить»
+  function showError(retry) {
+    const row = addMsg('bot', navigator.onLine === false ? A[lang].offline : t().error, '', { save: false });
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip retry'; b.textContent = '↻ ' + A[lang].retry;
+    b.onclick = () => { row.remove(); retry(); };
+    row.querySelector('.msg').appendChild(b);
+    log.scrollTop = log.scrollHeight;
   }
   function chips(list) {
     document.querySelectorAll('.chips').forEach((c) => c.remove());
@@ -226,39 +345,72 @@
     } catch { /* нет сети — отправим при следующем открытии сайта */ }
   }
   function flushLeads() { leads.get().filter((x) => !x.synced).forEach(pushLead); }
-  function leadCard(lead) {
+  function leadCardView(text) {
     const d = document.createElement('div'); d.className = 'lead-card';
-    d.textContent = '[ЗАЯВКА] ' + JSON.stringify(lead, null, 1) + ' [/ЗАЯВКА]';
+    d.textContent = text;
     log.appendChild(d);
+  }
+  function leadCard(lead) {
+    const text = '[ЗАЯВКА] ' + JSON.stringify(lead, null, 1) + ' [/ЗАЯВКА]';
+    leadCardView(text); saveMsg({ role: 'lead', text, ts: Date.now() });
     const full = { ...lead, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       дата: lead.дата || new Date().toISOString(), язык: lang,
       устройство: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'телефон' : 'компьютер', synced: false };
     const all = leads.get(); all.unshift(full); leads.set(all);
     pushLead(full);
   }
+  // кто открыл чат — туда вернётся фокус после закрытия (Esc или ×)
+  let opener = null;
   function openChat(open = true) {
+    const was = chat.classList.contains('open');
+    if (open && !was) opener = document.activeElement;
     chat.classList.toggle('open', open);
     $('bubble').style.display = 'none';
     if (open) input.focus();
+    else if (was) {
+      const back = opener && opener.isConnected && !chat.contains(opener) && opener !== document.body ? opener : $('fab');
+      back.focus();
+    }
   }
   function greet() {
     log.innerHTML = '';
+    saved.set(null);
     if (live) { addMsg('bot', cfg.firstMessage); return; }
     const g = demo.greeting(); addMsg('bot', g.text); chips(g.chips);
   }
+  // восстановить переписку после перезагрузки; false — сохранённой нет
+  function restoreChat() {
+    const s = saved.get();
+    if (!s || s.lang !== lang || !s.msgs || !s.msgs.some((m) => m.role === 'user')) return false;
+    log.innerHTML = '';
+    s.msgs.forEach((m) => (m.role === 'lead' ? leadCardView(m.text) : addMsg(m.role, m.text, '', { ts: m.ts, save: false })));
+    if (live) {
+      // для Claude история должна начинаться с сообщения клиента
+      history = s.msgs.filter((m) => m.role === 'user' || m.role === 'bot').map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text })).slice(-30);
+      while (history.length && history[0].role !== 'user') history.shift();
+    }
+    return true;
+  }
+  function clearChat() {
+    if (busy) return;
+    history = []; demo = createDemo(lang);
+    greet(); input.focus();
+  }
   // opts.display — что показать в пузыре клиента, если оно отличается от отправляемого текста; opts.demoReply — готовый ответ демо
+  // opts.retry — повторная отправка после ошибки (сообщение клиента уже в чате)
   async function send(text, opts = {}) {
     text = (text || '').trim();
     if (!text || busy) return;
     busy = true;
     openChat(true);
-    addMsg('user', opts.display || text); chips([]);
+    if (!opts.retry) addMsg('user', opts.display || text);
+    chips([]);
     const wait = addMsg('bot', '', 'typing');
     try {
       let r;
       if (live) {
         history.push({ role: 'user', content: opts.voice ? '🎤 ' + text : text });
-        const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history }) });
+        const res = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages: history, lang }) });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'error');
         history.push({ role: 'assistant', content: data.reply });
@@ -274,8 +426,11 @@
       if (r.saved) addMsg('bot', t().saved);
       chips(r.chips);
     } catch (e) {
-      wait.querySelector('.msg').textContent = t().error;
+      wait.remove();
       if (live) history.pop();
+      busy = false;
+      showError(() => send(text, { ...opts, retry: true }));
+      return;
     }
     busy = false;
   }
@@ -316,8 +471,34 @@
       await send(f.name, { display: '📎 ' + f.name, demoReply: () => demo.docReply(f.name, text) });
     }
   }
+  // вложение сначала показывается над полем ввода (имя и размер, × — убрать), уходит по кнопке ➤
+  const FILE_EXT = ['txt', 'md', 'csv', 'pdf'], FILE_MAX = 2 * 1024 * 1024;
+  let pendingFile = null;
+  const kb = (n) => (n < 1024 * 1024 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1024 / 1024).toFixed(1) + ' MB');
+  function showAttach(f, err) {
+    const bar = $('attach-bar');
+    bar.innerHTML = '';
+    if (!f) { bar.hidden = true; return; }
+    const name = document.createElement('span'); name.className = 'name';
+    name.textContent = '📎 ' + f.name + ' · ' + kb(f.size);
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = '×';
+    x.setAttribute('aria-label', A[lang].removeFile); x.title = A[lang].removeFile;
+    x.onclick = () => { pendingFile = null; showAttach(null); input.focus(); };
+    bar.append(name);
+    if (err) { const e = document.createElement('span'); e.className = 'err'; e.textContent = err; bar.append(e); }
+    bar.append(x);
+    bar.hidden = false;
+  }
   $('attach').onclick = () => $('file').click();
-  $('file').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) handleFile(f); };
+  $('file').onchange = (e) => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    const err = !FILE_EXT.includes(ext) ? A[lang].badType : f.size > FILE_MAX ? A[lang].tooBig : '';
+    pendingFile = err ? null : f;
+    showAttach(f, err);
+    input.focus();
+  };
 
   // ---------- голосовой ввод ----------
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -334,7 +515,10 @@
     u.voice = v; u.lang = v.lang;
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   }
-  function renderSpeaker() { const b = $('speaker'); b.textContent = speakOn ? '🔊' : '🔇'; b.title = V[lang].speaker; }
+  function renderSpeaker() {
+    const b = $('speaker'); b.textContent = speakOn ? '🔊' : '🔇'; b.title = V[lang].speaker;
+    b.setAttribute('aria-label', speakOn ? A[lang].soundOn : A[lang].soundOff); b.setAttribute('aria-pressed', String(speakOn));
+  }
   $('speaker').onclick = () => { speakOn = !speakOn; store.set('aqyl_tts', speakOn); if (!speakOn && window.speechSynthesis) speechSynthesis.cancel(); renderSpeaker(); };
   renderSpeaker();
 
@@ -463,18 +647,110 @@
   $('close-panel').onclick = closePanel;
   $('clear-leads').onclick = clearLeads;
   $('panel').onclick = (e) => { if (e.target === $('panel')) closePanel(); };
-  $('form').addEventListener('submit', (e) => { e.preventDefault(); const v = input.value; input.value = ''; send(v); });
+  $('clear-chat').onclick = clearChat;
+  $('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (busy) return;
+    const v = input.value, f = pendingFile;
+    input.value = ''; grow();
+    if (f) { pendingFile = null; showAttach(null); await handleFile(f); }
+    send(v);
+  });
   document.addEventListener('click', (e) => {
     const c = e.target.closest('[data-q]');
     if (c) ask(c.dataset.q);
   });
+
+  // поле ввода: Enter — отправить, Shift+Enter — новая строка; растёт до 4 строк
+  function grow() {
+    input.style.height = 'auto';
+    if (!input.offsetParent) return;   // чат закрыт — размер посчитаем при следующем вводе
+    const lh = parseFloat(getComputedStyle(input).lineHeight) || 22;
+    const extra = input.offsetHeight - input.clientHeight + 20;   // рамка + внутренние отступы
+    const max = lh * 4 + extra;
+    input.style.height = Math.min(input.scrollHeight + (input.offsetHeight - input.clientHeight), max) + 'px';
+    input.classList.toggle('multi', input.scrollHeight > lh * 1.6 + 20);
+  }
+  input.addEventListener('input', grow);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('form').requestSubmit(); }
+  });
+
+  // Esc закрывает панель менеджера или чат
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if ($('panel').classList.contains('open')) closePanel();
+    else if (chat.classList.contains('open')) openChat(false);
+  });
+
+  // окно чата можно перетащить за шапку (на ПК и планшете); место запоминается, двойной клик по шапке — вернуть на место
+  const head = chat.querySelector('.head');
+  const canDrag = () => window.innerWidth > 520;
+  function placeChat(x, y) {
+    const w = chat.offsetWidth, h = chat.offsetHeight;
+    x = Math.min(Math.max(8, x), window.innerWidth - w - 8);
+    y = Math.min(Math.max(8, y), window.innerHeight - h - 8);
+    Object.assign(chat.style, { left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto' });
+    return { x, y };
+  }
+  function resetChatPos() { Object.assign(chat.style, { left: '', top: '', right: '', bottom: '' }); store.set('aqyl_chat_pos', null); }
+  head.addEventListener('pointerdown', (e) => {
+    if (!canDrag() || e.button !== 0 || e.target.closest('button')) return;
+    const r = chat.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+    head.setPointerCapture(e.pointerId); chat.classList.add('dragging');
+    let pos = null;
+    const move = (ev) => { pos = placeChat(ev.clientX - dx, ev.clientY - dy); };
+    const up = () => {
+      head.removeEventListener('pointermove', move); head.removeEventListener('pointerup', up); head.removeEventListener('pointercancel', up);
+      chat.classList.remove('dragging');
+      if (pos) store.set('aqyl_chat_pos', pos);
+    };
+    head.addEventListener('pointermove', move); head.addEventListener('pointerup', up); head.addEventListener('pointercancel', up);
+  });
+  head.addEventListener('dblclick', (e) => { if (!e.target.closest('button')) resetChatPos(); });
+  // вернуть сохранённое место при открытии чата и удержать окно в экране при смене размера окна
+  function restoreChatPos() {
+    const p = store.get('aqyl_chat_pos', null);
+    if (!canDrag()) { Object.assign(chat.style, { left: '', top: '', right: '', bottom: '' }); return; }
+    if (p && chat.classList.contains('open')) placeChat(p.x, p.y);
+  }
+  new MutationObserver(restoreChatPos).observe(chat, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('resize', restoreChatPos);
+
+  // подсветка пункта меню текущего раздела (тем же цветом, что при наведении)
+  const navLinks = [...document.querySelectorAll('.nav a[href^="#"]')];
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        navLinks.forEach((a) => {
+          const on = a.getAttribute('href') === '#' + en.target.id;
+          a.classList.toggle('on', on);
+          if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+        });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    navLinks.forEach((a) => { const s = document.querySelector(a.getAttribute('href')); if (s) io.observe(s); });
+  }
+
+  // кнопка «наверх» — после прокрутки на полтора экрана
+  const toTop = $('to-top');
+  const onScroll = () => { toTop.hidden = window.scrollY < window.innerHeight * 1.5; };
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  toTop.onclick = () => window.scrollTo({ top: 0 });
+  window.addEventListener('hashchange', openFaqFromHash);
+
+  // офлайн-режим и установка на телефон (только https или localhost)
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
 
   (async function init() {
     try { const r = await fetch('/api/config'); if (r.ok) cfg = await r.json(); } catch {}
     if (cfg && cfg.leads) LEADS_API = '/api';   // сайт открыт через сервер ноутбука — заявки пишем в файл
     if (cfg && cfg.hasKey && !/[?&]demo\b/.test(location.search)) { live = true; $('company').textContent = cfg.company; $('company2').textContent = cfg.company; }
     renderSite();
-    greet();
+    if (!restoreChat()) greet();
     flushLeads();   // заявки, которые не ушли из-за плохой связи, отправляем повторно
     setTimeout(() => {
       if (!chat.classList.contains('open')) { const b = $('bubble'); b.textContent = t().bubble; b.style.display = 'block'; }

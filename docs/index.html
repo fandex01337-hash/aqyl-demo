@@ -5,10 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aqyl — ИИ-консультант AgroQazyna</title>
 <meta name="description" content="Aqyl — ИИ-консультант по удобрениям: подбор по культуре, расчёт стоимости, доставка по всему Казахстану, заявка в чате.">
+<meta name="theme-color" content="#1f7a4d">
+
+<!-- языковые версии (язык выбирается параметром ?lang=) -->
+<link rel="alternate" hreflang="ru" href="https://fandex01337-hash.github.io/aqyl-demo/?lang=ru">
+<link rel="alternate" hreflang="kk" href="https://fandex01337-hash.github.io/aqyl-demo/?lang=kk">
+<link rel="alternate" hreflang="en" href="https://fandex01337-hash.github.io/aqyl-demo/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://fandex01337-hash.github.io/aqyl-demo/">
+
+<!-- превью ссылки в WhatsApp, Telegram и соцсетях -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AgroQazyna">
+<meta property="og:title" content="Aqyl — ИИ-консультант AgroQazyna">
+<meta property="og:description" content="Подбор удобрений по культуре, расчёт стоимости и доставка по всему Казахстану. Ответ в чате 24/7 на казахском, русском и английском.">
+<meta property="og:url" content="https://fandex01337-hash.github.io/aqyl-demo/">
+<meta property="og:image" content="https://fandex01337-hash.github.io/aqyl-demo/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:locale:alternate" content="kk_KZ">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Aqyl — ИИ-консультант AgroQazyna">
+<meta name="twitter:description" content="Подбор удобрений по культуре, расчёт стоимости и доставка по всему Казахстану. Ответ в чате 24/7.">
+<meta name="twitter:image" content="https://fandex01337-hash.github.io/aqyl-demo/og.png">
+
+<!-- иконки и установка на телефон -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+
+<!-- разметка для поисковиков: компания и частые вопросы (FAQ заполняет site.js на выбранном языке) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "AgroQazyna",
+  "description": "Поставка минеральных удобрений по всему Казахстану. ИИ-консультант Aqyl отвечает 24/7.",
+  "url": "https://fandex01337-hash.github.io/aqyl-demo/",
+  "logo": "https://fandex01337-hash.github.io/aqyl-demo/icon-512.png",
+  "image": "https://fandex01337-hash.github.io/aqyl-demo/og.png",
+  "telephone": "+77172574520",
+  "email": "sales@agroqazyna.kz",
+  "address": { "@type": "PostalAddress", "streetAddress": "ул. Примерная, 1", "addressLocality": "Астана", "addressCountry": "KZ" },
+  "areaServed": "KZ",
+  "openingHours": "Mo-Fr 09:00-18:00",
+  "availableLanguage": ["kk", "ru", "en"]
+}
+</script>
+<script type="application/ld+json" id="ld-faq">{}</script>
+
+<script src="data.js" defer></script>
+<script src="demo.js" defer></script>
+<script src="site.js" defer></script>
 </head>
 <body>
 
@@ -42,7 +98,7 @@
 
 <header class="top">
   <div class="wrap">
-    <a class="logo" href="#top"><svg class="av" viewBox="0 0 120 120"><use href="#aqyl-av"/></svg><span id="company">AgroQazyna</span></a>
+    <a class="logo" href="#top"><svg class="av" viewBox="0 0 120 120" aria-hidden="true"><use href="#aqyl-av"/></svg><span id="company">AgroQazyna</span></a>
     <nav class="nav">
       <a href="#products" data-i18n="nav_products"></a>
       <a href="#crops" data-i18n="nav_crops"></a>
@@ -93,7 +149,7 @@
     </div>
     <div class="mascot" id="mascot" role="button" tabindex="0" aria-label="Aqyl">
       <div class="say" id="mascot-say"></div>
-      <svg viewBox="0 0 120 120" width="100%"><use href="#aqyl-av"/></svg>
+      <svg viewBox="0 0 120 120" width="100%" aria-hidden="true"><use href="#aqyl-av"/></svg>
     </div>
   </div>
 </section>
@@ -145,13 +201,13 @@
   <p class="sec-sub" data-i18n="team_sub"></p>
   <div class="team">
     <div class="people">
-      <div class="person lead"><img src="team/esenaliev.jpg" alt="Есеналиев Илья"><b>Есеналиев Илья</b><span data-i18n="team_lead"></span></div>
-      <div class="person"><img src="team/veiberg.jpg" alt="Вейберг Олег"><b>Вейберг Олег</b><span data-i18n="team_member"></span></div>
-      <div class="person"><img src="team/nazarenko.jpg" alt="Назаренко Роман"><b>Назаренко Роман</b><span data-i18n="team_member"></span></div>
-      <div class="person sup"><img src="team/umbetova.jpg" alt="Умбетова Айнур Утемисбаевна"><b>Умбетова Айнур Утемисбаевна</b><span data-i18n="team_sup"></span></div>
+      <div class="person lead"><img src="team/esenaliev.jpg" alt="Фото: Есеналиев Илья, лидер команды" loading="lazy" decoding="async" width="110" height="110"><b>Есеналиев Илья</b><span data-i18n="team_lead"></span></div>
+      <div class="person"><img src="team/veiberg.jpg" alt="Фото: Вейберг Олег, участник команды" loading="lazy" decoding="async" width="110" height="110"><b>Вейберг Олег</b><span data-i18n="team_member"></span></div>
+      <div class="person"><img src="team/nazarenko.jpg" alt="Фото: Назаренко Роман, участник команды" loading="lazy" decoding="async" width="110" height="110"><b>Назаренко Роман</b><span data-i18n="team_member"></span></div>
+      <div class="person sup"><img src="team/umbetova.jpg" alt="Фото: Умбетова Айнур Утемисбаевна, руководитель проекта" loading="lazy" decoding="async" width="110" height="110"><b>Умбетова Айнур Утемисбаевна</b><span data-i18n="team_sup"></span></div>
     </div>
     <div class="card qr">
-      <img src="team/qr.png" alt="QR-код на сайт Aqyl">
+      <img src="team/qr.png" alt="QR-код со ссылкой на сайт Aqyl" loading="lazy" decoding="async">
       <b data-i18n="team_qr_title"></b>
       <span>fandex01337-hash.github.io/aqyl-demo</span>
     </div>
@@ -170,20 +226,23 @@
 </div></footer>
 
 <div id="bubble" style="display:none"></div>
-<button id="fab" aria-label="Chat"><svg class="av" viewBox="0 0 120 120"><use href="#aqyl-av"/></svg></button>
+<button id="to-top" class="icon-btn" aria-label="Наверх" hidden>↑</button>
+<button id="fab" aria-label="Chat"><svg class="av" viewBox="0 0 120 120" aria-hidden="true"><use href="#aqyl-av"/></svg></button>
 <div id="chat" role="dialog" aria-label="Aqyl">
   <div class="head">
-    <svg class="av" viewBox="0 0 120 120"><use href="#aqyl-av"/></svg>
+    <svg class="av" viewBox="0 0 120 120" aria-hidden="true"><use href="#aqyl-av"/></svg>
     <div><b>Aqyl</b><small><i></i><span id="chat-sub"></span></small></div>
-    <button id="speaker" aria-label="Sound" style="margin-left:auto;font-size:18px">🔊</button>
+    <button id="clear-chat" class="clear-chat" aria-label="Очистить чат">⟲</button>
+    <button id="speaker" aria-label="Sound" style="font-size:18px;margin-left:0">🔊</button>
     <button id="close-chat" aria-label="Close" style="margin-left:0">×</button>
   </div>
   <div id="log" aria-live="polite"></div>
+  <div id="attach-bar" hidden></div>
   <form id="form">
     <button type="button" id="attach" class="icon-btn" aria-label="Attach">📎</button>
-    <input id="input" autocomplete="off" maxlength="1000">
+    <textarea id="input" rows="1" autocomplete="off" maxlength="1000"></textarea>
     <button type="button" id="mic" class="icon-btn" aria-label="Voice" hidden>🎤</button>
-    <button class="btn" aria-label="Send">➤</button>
+    <button class="btn" id="send" aria-label="Send">➤</button>
   </form>
   <input type="file" id="file" accept=".txt,.md,.csv,.pdf,text/plain,application/pdf" hidden>
 </div>
@@ -193,9 +252,5 @@
   <div id="leads"></div>
   <div class="actions"><button class="btn ghost sm" id="clear-leads" data-i18n="panel_clear"></button><button class="btn sm" id="close-panel" data-i18n="panel_close"></button></div>
 </div></div>
-
-<script src="data.js"></script>
-<script src="demo.js"></script>
-<script src="site.js"></script>
 </body>
 </html>

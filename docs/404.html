@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Страница не найдена — AgroQazyna</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1f7a4d">
+<!-- абсолютные пути: 404 открывается по любому адресу внутри сайта -->
+<link rel="icon" href="/aqyl-demo/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* те же цвета и шрифт, что на основном сайте */
+  :root { --green:#1f7a4d; --green-d:#145a39; --cream:#fbf6e9; --ink:#1d2a22; --muted:#5d6b62; --line:#e8e0c8; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px 16px; font:16px/1.55 'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; color:var(--ink);
+    background:var(--cream) radial-gradient(circle at 1px 1px, rgba(31,122,77,.07) 1px, transparent 0) 0 0/22px 22px; }
+  .box { background:#fff; border:1px solid var(--line); border-radius:18px; box-shadow:0 6px 24px rgba(40,60,30,.12); padding:32px 24px; max-width:440px; text-align:center; }
+  img { width:120px; height:120px; }
+  h1 { font-size:clamp(26px,6vw,34px); font-weight:800; margin:8px 0; line-height:1.2; }
+  p { color:var(--muted); margin:0 0 20px; }
+  .btn { background:var(--green); color:#fff; border-radius:999px; padding:12px 22px; font-weight:700; text-decoration:none; display:inline-block; }
+  .btn:hover { background:var(--green-d); }
+  :focus-visible { outline:3px solid #e9b949; outline-offset:2px; }
+</style>
+</head>
+<body>
+  <main class="box">
+    <img src="/aqyl-demo/favicon.svg" alt="" width="120" height="120">
+    <h1>Страница не найдена</h1>
+    <p>Бет табылмады · Page not found.<br>Возможно, ссылка устарела. Aqyl ждёт вас на главной.</p>
+    <a class="btn" href="/aqyl-demo/">На главную</a>
+  </main>
+  <script>
+    // на сервере ноутбука сайт лежит в корне, а не в /aqyl-demo/
+    if (!location.pathname.startsWith('/aqyl-demo/')) {
+      document.querySelectorAll('[href^="/aqyl-demo/"],[src^="/aqyl-demo/"]').forEach((el) => {
+        const attr = el.hasAttribute('href') ? 'href' : 'src';
+        el.setAttribute(attr, el.getAttribute(attr).replace('/aqyl-demo/', '/'));
+      });
+    }
+  </script>
+</body>
+</html>

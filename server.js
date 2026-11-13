@@ -1,44 +1,19 @@
-// Aqyl: сервер сайта + прокси к Claude API. Без зависимостей, Node 18+.
-// Запуск: set ANTHROPIC_API_KEY=... ; node server.js
+// Aqyl: сервер сайта на ноутбуке + прокси к нейросети (Gemini или Claude). Без зависимостей, Node 18+.
+// Запуск: node server.js (ключ — в gemini-key.txt или anthropic-key.txt). Та же логика на Vercel — в api/.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { COMPANY, FIRST_MESSAGE, apiKey, managerPassword, ask, validMessages, cleanLead } = require('./lib/ai');
 
 const PORT = process.env.PORT || 3030;   // 3030, чтобы не мешать другим проектам на 3000
-const COMPANY = process.env.COMPANY_NAME || 'AgroQazyna';
-const MANAGER = process.env.MANAGER_CONTACTS || '+7 (7172) 57-45-20, sales@agroqazyna.kz';
-const MODEL = process.env.MODEL || 'claude-sonnet-5-5';
-const API_KEY = process.env.ANTHROPIC_API_KEY;
-
-const FIRST_MESSAGE = `Сәлеметсіз бе! Здравствуйте! Я Aqyl — ИИ-консультант компании ${COMPANY}. Помогу подобрать продукт, отвечу на вопросы по документам и помогу оставить заявку. Чем могу помочь?`;
-
-function buildSystem() {
-  const prompt = fs
-    .readFileSync(path.join(__dirname, 'prompt.md'), 'utf8')
-    .replaceAll('[НАЗВАНИЕ КОМПАНИИ]', COMPANY)
-    .replaceAll('[КОМПАНИЯ]', COMPANY)
-    .replaceAll('[КОНТАКТЫ МЕНЕДЖЕРА]', MANAGER);
-  const dir = path.join(__dirname, 'knowledge');
-  const docs = fs
-    .readdirSync(dir)
-    .filter((f) => /\.(md|txt)$/i.test(f))
-    .map((f) => `<документ название="${f}">\n${fs.readFileSync(path.join(dir, f), 'utf8')}\n</документ>`)
-    .join('\n');
-  return `${prompt}\n\n<документы>\n${docs}\n</документы>`;
-}
 
 // ---------- Заявки: папка «заявки» ----------
 // заявки.txt   — читает человек (открыть в Блокноте или Word)
 // заявки.jsonl — читает панель менеджера
-// Пароль панели: переменная MANAGER_PASSWORD или файл manager-password.txt (в GitHub не попадает)
 const LEADS_DIR = path.join(__dirname, 'заявки');
 const LEADS_TXT = path.join(LEADS_DIR, 'заявки.txt');
 const LEADS_JSONL = path.join(LEADS_DIR, 'заявки.jsonl');
-const PASS_FILE = path.join(__dirname, 'manager-password.txt');
-const managerPassword = () =>
-  process.env.MANAGER_PASSWORD || (fs.existsSync(PASS_FILE) ? fs.readFileSync(PASS_FILE, 'utf8').trim() : '');
 
-const clip = (v) => String(v ?? '').replace(/[\r\n]+/g, ' ').slice(0, 500);
 function readLeads() {
   if (!fs.existsSync(LEADS_JSONL)) return [];
   return fs.readFileSync(LEADS_JSONL, 'utf8').split('\n').filter(Boolean)
@@ -47,10 +22,8 @@ function readLeads() {
 function saveLead(raw) {
   fs.mkdirSync(LEADS_DIR, { recursive: true });
   const all = readLeads();
-  const id = clip(raw.id) || Date.now().toString(36);
-  if (all.some((x) => x.id === id)) return;                       // повтор той же заявки не дублируем
-  const lead = { id, дата: new Date().toISOString(), имя: clip(raw.имя), контакт: clip(raw.контакт),
-    запрос: clip(raw.запрос), время: clip(raw.время), язык: clip(raw.язык), устройство: clip(raw.устройство) };
+  const lead = cleanLead(raw);
+  if (all.some((x) => x.id === lead.id)) return;                  // повтор той же заявки не дублируем
   fs.appendFileSync(LEADS_JSONL, JSON.stringify(lead) + '\n');
   const when = new Date().toLocaleString('ru-RU', { timeZone: 'Asia/Almaty' });
   fs.appendFileSync(LEADS_TXT,
@@ -58,43 +31,6 @@ function saveLead(raw) {
     `Имя:           ${lead.имя}\r\nКонтакт:       ${lead.контакт}\r\nЗапрос:        ${lead.запрос}\r\n` +
     `Удобное время: ${lead.время}\r\nЯзык:          ${lead.язык}\r\n\r\n`);
   console.log('Новая заявка:', lead.имя, lead.контакт);
-}
-
-const LEAD_RE = /\[ЗАЯВКА\]([\s\S]*?)\[\/ЗАЯВКА\]/;
-
-// язык, выбранный на сайте: Aqyl отвечает на нём, даже если клиент пишет на другом
-const LANG_HINT = { ru: 'Отвечай на русском языке.', kk: 'Жауапты қазақ тілінде бер.', en: 'Answer in English.' };
-
-async function chat(messages, lang) {
-  const system = [{ type: 'text', text: buildSystem(), cache_control: { type: 'ephemeral' } }];
-  if (LANG_HINT[lang]) system.push({ type: 'text', text: LANG_HINT[lang] });
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      system,
-      messages,
-    }),
-  });
-  if (!res.ok) throw new Error(`Claude API ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  let text = data.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
-  const m = text.match(LEAD_RE);
-  if (m) {
-    try {
-      saveLead({ ...JSON.parse(m[1]), устройство: 'чат (живой режим)' });
-    } catch (e) {
-      console.error('Не удалось разобрать заявку:', m[1]);
-    }
-    text = text.replace(LEAD_RE, '').trim();
-  }
-  return { reply: text, leadSaved: !!m };
 }
 
 function readBody(req) {
@@ -117,7 +53,7 @@ http
   .createServer(async (req, res) => {
     try {
       if (req.method === 'GET' && req.url === '/api/config') {
-        return send(res, 200, { company: COMPANY, firstMessage: FIRST_MESSAGE, hasKey: !!API_KEY, leads: true });
+        return send(res, 200, { company: COMPANY, firstMessage: FIRST_MESSAGE, hasKey: !!apiKey(), leads: true });
       }
       // новая заявка с сайта (демо-чат или форма)
       if (req.method === 'POST' && req.url === '/api/lead') {
@@ -137,15 +73,12 @@ http
         return send(res, 200, { ok: true, leads: readLeads().reverse() });
       }
       if (req.method === 'POST' && req.url === '/api/chat') {
-        if (!API_KEY) return send(res, 500, { error: 'ANTHROPIC_API_KEY не задан' });
+        if (!apiKey()) return send(res, 500, { error: 'Ключ не задан: gemini-key.txt или anthropic-key.txt' });
         const { messages, lang } = JSON.parse(await readBody(req));
-        const ok =
-          Array.isArray(messages) &&
-          messages.length > 0 &&
-          messages.length <= 40 &&
-          messages.every((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.length <= 4000);
-        if (!ok) return send(res, 400, { error: 'bad request' });
-        return send(res, 200, await chat(messages, lang));
+        if (!validMessages(messages)) return send(res, 400, { error: 'bad request' });
+        const { reply, lead } = await ask(messages, lang);
+        if (lead) saveLead(lead);
+        return send(res, 200, { reply, leadSaved: !!lead });
       }
       if (req.method === 'GET') {
         const file = req.url === '/' ? '/index.html' : decodeURIComponent(req.url.split('?')[0]);

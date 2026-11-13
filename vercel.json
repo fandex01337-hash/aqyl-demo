@@ -1,0 +1,9 @@
+{
+  "outputDirectory": "docs",
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "{prompt.md,knowledge/**}",
+      "maxDuration": 60
+    }
+  }
+}

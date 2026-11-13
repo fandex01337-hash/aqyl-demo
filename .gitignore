@@ -4,6 +4,8 @@ node_modules/
 
 # Пароль панели менеджера, заявки и запуск на ноутбуке — только локально, не в GitHub
 manager-password.txt
+anthropic-key.txt
+gemini-key.txt
 заявки/
 start-server.vbs
 server-log.txt

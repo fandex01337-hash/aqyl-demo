@@ -18,20 +18,24 @@
 
 Без сервера (GitHub Pages) сайт тоже работает: заявка сохраняется в браузере клиента, клиент видит «заявка передана».
 
-## Живой режим (Claude API)
-Нужен Node.js 18+ и ключ `ANTHROPIC_API_KEY`:
+## Живой режим (нейросеть Gemini или Claude)
+На ноутбуке: положите ключ в `gemini-key.txt` (или `anthropic-key.txt` для Claude) рядом с `server.js` и запустите `node server.js`.
+Ключ читается при каждом запросе — перезапуск не нужен. Файлы с ключами в GitHub не попадают.
 
-```bash
-set ANTHROPIC_API_KEY=ваш_ключ
-set COMPANY_NAME=Название
-node server.js
-```
-
-Сервер подставляет `prompt.md` и документы из `knowledge/` в системный промт; заявки пишет в `leads.jsonl`.
+Сервер подставляет `prompt.md` и документы из `knowledge/` в системный промт.
 Если ключа нет, сайт автоматически работает в демо-режиме.
+
+## Vercel (без ноутбука)
+1. vercel.com → Add New → Project → импортировать этот репозиторий (настройки сборки не трогать, всё в `vercel.json`).
+2. Settings → Environment Variables: `GEMINI_API_KEY` (ключ нейросети) и `MANAGER_PASSWORD` (пароль панели).
+3. Заявки: Storage → Upstash Redis → подключить к проекту. Без базы заявки остаются в браузере клиента.
+
+Каждый push в `main` обновляет сайт на Vercel сам.
 
 ## Структура
 - `prompt.md` — системный промт Aqyl
 - `knowledge/` — база знаний (демо-данные)
-- `server.js` — сервер и прокси к Claude API
+- `lib/ai.js` — общая логика нейросети (Gemini / Claude)
+- `server.js` — сервер ноутбука, заявки в папку `заявки/`
+- `api/` — функции Vercel, заявки в Upstash Redis (`lib/leads-store.js`)
 - `docs/` — сайт и демо-движок

@@ -562,7 +562,7 @@
   const passStore = { get: () => { try { return sessionStorage.getItem('aqyl_pass') || ''; } catch { return ''; } },
     set: (v) => { try { v ? sessionStorage.setItem('aqyl_pass', v) : sessionStorage.removeItem('aqyl_pass'); } catch {} } };
   let panelTimer = null;
-  const PASS_HASH = '2cb07ee94ec4c15e385a2d0521eac85d2c084cb660a1a9ae9b64a09138d27c65';   // SHA-256 от «aqyl:пароль»
+  const PASS_HASH = 'cba426f1800d04b4ef4f6b73eb73d8483f8a91a44375ddbda00540e8a8e8e45b';   // SHA-256 от «aqyl:пароль»
   async function passOk(p) {
     try {
       const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('aqyl:' + p));
